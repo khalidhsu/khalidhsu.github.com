@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link rel="stylesheet" type="text/css" href="../../../../../theme/css/style.css">
+	<!--<link rel="stylesheet/less" type="text/css" href="/theme/css/style.less">-->
+	<!--<script src="/theme/js/less.js" type="text/javascript"></script>-->
+        <script src="/theme/js/clicki.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="../../../../../theme/css/pygments.css">
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:800,400,300|Inconsolata' rel='stylesheet' type='text/css'>
+
+	<link href="http://khalidhsu.github.com/" type="application/atom+xml" rel="alternate" title="Khalid Hsu ATOM Feed" />
+		<link href="http://khalidhsu.github.com/feeds/all.rss.xml" type="application/atom+xml" rel="alternate" title="Khalid Hsu RSS Feed" />
+
+
+		<title>Khalid Hsu</title>
+		<meta charset="utf-8" />
+</head>
+<body>
+	<section id="sidebar">
+		<figure id="user_logo">
+            <a href="../../../../.."><div class="logo">&nbsp;</div></a>
+		</figure>
+
+		<div class="user_meta">
+            <h1 id="user"><a href="../../../../.." class="">Khalid Hsu</a></h1>
+			<h2></h2>
+			<ul>
+					<li><a href="http://khalidhsu.github.com/categories.html">Cate</a></li>
+					<li><a href="http://khalidhsu.github.com/tags.html">Tags</a></li>
+					<li><a href="http://khalidhsu.github.com/feeds/all.atom.xml">RSS</a></li>
+					<li><a href="http://khalidhsu.github.com/pages/about.html">ABOUT</a></li>
+			</ul>
+		</div>
+		<footer>
+			<address>
+				Powered by <a href="http://pelican.notmyidea.org/">Pelican</a>,
+		                theme by <a href="https://github.com/wting/pelican-svbtle">wting</a>.
+			</address>
+		</footer>
+	</section>
+
+	<section id="posts">
+	<header>
+		<h1>Khalid Hsu's blog</h1>
+		<h3>Posted Sun 14 October 2012</h3>
+	</header>
+	<article>
+		<h1 id="title">
+			<a href="../../../../../posts/2012/Oct/14/ddemacs/" rel="bookmark"
+				title="Permalink to 用emacs写点点博客">用emacs写点点博客</a>
+		</h1>
+		<p>用emacs写点点博客
+发现点点还是挺不错的，清新无广告，还支持高度的自定义。不过话说回来，在网页上那个小小的文本窗口写blog绝非一件很cool的事，特别是对于emacser。 <br />
+如果要用emacs写blog的话，可以通过邮件发送的方式。但我发现用邮件发布的话，如果你要加入标签，标签还是会存在于文本的正文中。（不知道点点的攻城狮现在有没有改进）   <br />
+当然，我喜欢另外一种办法，那就是通过模拟http请求来写blog。  </p>
+<p>用firebug监视一下点点发布文章的HTTP请求，可以发现，发布文章的post请求大致为</p>
+<div class="highlight"><pre><span class="s2">&quot;formKey=$formKey&amp;title=&amp;markdownContent=$markdownbody&amp;$uri&amp;$tags&amp;privacy=0&amp;setTop=false&amp;creativeCommonsEnable=false&amp;creativeCommonsType=by_nc_sa&amp;syncToWeibo=false&amp;syncToQqWeibo=false&amp;syncToDouban=false&amp;syncToQzone=false&amp;syncToRenren=false&amp;syncToFacebook=false&amp;syncToTwitter=false&amp;syncToFlickr=false&quot;</span>
+</pre></div>
+
+
+<p>其中$formkey为对应每个博客的一个数字ID。$markdownbody为发布的内容（我用的是markdown编辑模式发布的）
+其他的参数也没什么好解释的，就是字面的意思。</p>
+<p>获取formKey的办法</p>
+<div class="highlight"><pre>curl http://www.diandian.com/dianlog/khalidhsu/new/text  -b ~/ddcookie |grep DDformKey|cut -d<span class="s2">&quot;&#39;&quot;</span> -f 2 &gt;~/ddformkey
+</pre></div>
+
+
+<p>其中khalidhsu为我的博客地址，获取的ddformkey保存为~/ddformkey。 <br />
+等等，你还没拿到cookie哦，要先把这块不能吃的cookie拿到手才能干活的。代码如下：</p>
+<div class="highlight"><pre>curl -c ~/ddcookie http://www.diandian.com/login -d <span class="s2">&quot;account=khalidhsu%40gmail.com&amp;password=youpassword&amp;persistent=1&quot;</span>
+</pre></div>
+
+
+<p>将上面的账户名和密码改为你的即可。执行一下，得到的cookie就保存在~/ddcookie。<br />
+以上的几步就是发表文章的关键几步了。<br />
+实际上，我把这写代码写成两个bash脚本，然后再用elisp调用的。<br />
+听起来很麻烦？当然不会，我在emacs里面写好文章，只需要简单的两步就可以发表了^_^<br />
+好了，先写到这，有空再补充一下。 </p>
+
+		<div id="article_meta">
+				Category:
+					<a href="../../../../../category/2012-10.html">2012-10</a>
+				<br />Tags:
+					<a href="../../../../../tag/emacs.html">emacs</a>
+					<a href="../../../../../tag/diandian.html">diandian</a>
+		</div>
+	</article>
+
+	<footer>
+		<a href="../../../../../" class="button_accent">&larr;&nbsp;&nbsp;&nbsp;Back to blog</a>
+	</footer>
+
+	<div id="comments">
+		<h2>Comments</h2>
+		<div id="disqus_thread"></div>
+		<script type="text/javascript">
+			var disqus_identifier = "posts/2012/Oct/14/ddemacs/";
+			(function() {
+				var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+				dsq.src = 'http://khalidhsu.disqus.com/embed.js';
+				(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+			})();
+		</script>
+		<noscript>Please enable JavaScript to view <a href="http://disqus.com/?ref_noscript">comments</a>.</noscript>
+	</div>
+
+	</section>
+
+</body>
+</html>

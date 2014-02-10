@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link rel="stylesheet" type="text/css" href="../../../../../theme/css/style.css">
+	<!--<link rel="stylesheet/less" type="text/css" href="/theme/css/style.less">-->
+	<!--<script src="/theme/js/less.js" type="text/javascript"></script>-->
+        <script src="/theme/js/clicki.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="../../../../../theme/css/pygments.css">
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:800,400,300|Inconsolata' rel='stylesheet' type='text/css'>
+
+	<link href="http://khalidhsu.github.com/" type="application/atom+xml" rel="alternate" title="Khalid Hsu ATOM Feed" />
+		<link href="http://khalidhsu.github.com/feeds/all.rss.xml" type="application/atom+xml" rel="alternate" title="Khalid Hsu RSS Feed" />
+
+
+		<title>Khalid Hsu</title>
+		<meta charset="utf-8" />
+</head>
+<body>
+	<section id="sidebar">
+		<figure id="user_logo">
+            <a href="../../../../.."><div class="logo">&nbsp;</div></a>
+		</figure>
+
+		<div class="user_meta">
+            <h1 id="user"><a href="../../../../.." class="">Khalid Hsu</a></h1>
+			<h2></h2>
+			<ul>
+					<li><a href="http://khalidhsu.github.com/categories.html">Cate</a></li>
+					<li><a href="http://khalidhsu.github.com/tags.html">Tags</a></li>
+					<li><a href="http://khalidhsu.github.com/feeds/all.atom.xml">RSS</a></li>
+					<li><a href="http://khalidhsu.github.com/pages/about.html">ABOUT</a></li>
+			</ul>
+		</div>
+		<footer>
+			<address>
+				Powered by <a href="http://pelican.notmyidea.org/">Pelican</a>,
+		                theme by <a href="https://github.com/wting/pelican-svbtle">wting</a>.
+			</address>
+		</footer>
+	</section>
+
+	<section id="posts">
+	<header>
+		<h1>Khalid Hsu's blog</h1>
+		<h3>Posted Sat 17 November 2012</h3>
+	</header>
+	<article>
+		<h1 id="title">
+			<a href="../../../../../posts/2012/Nov/17/asus-sl101-get-root/" rel="bookmark"
+				title="Permalink to ASUS SL101获取root权限 (ver9.2.1.27) 模糊记录">ASUS SL101获取root权限 (ver9.2.1.27) 模糊记录</a>
+		</h1>
+		<p>asus sl101到手了，感谢二姐送我的光棍节礼物^_^。<br />
+我尝试着获取root权限，不过试过国内各种“一键root神器”后，我彻底失望了。<br />
+后来在xda上找到了Oneclickrecovery，让我破碎的又心重新粘了起来。  </p>
+<p>发现国内关于sl101获取root的资料比较少，而且国内的各种傻瓜式的一键root神器也暂不支持我的这款平板。<br />
+所有就有了我这篇毫无技术含量的文章，希望能给其他希望获取root权限又怕平板变成砖的机油增加自信。<br />
+本文是我昨晚获取了root权限后，睡了一觉再根据回忆写的，难免有疏漏和错误，还请读者指正。<br />
+我也不打算写的很详细和啰嗦，因为程序里有非常详细的提示。<br />
+先说一下，我的平板固件号是9.2.1.27，如果你的版本号不同的话，可能不适合，请三思而后行。<br />
+xda上原帖网址：http://forum.xda-developers.com/showthread.php?t=1681155<br />
+上面有很多版本和下载链接，我下的是V0.4的。<br />
+我的操作环境是winxp的，XP要自己安装驱动，win7的话，上述程序可以自动安装的。  </p>
+<p>好了，下载并解压好上面那个Oneclickrecovery，也安装好usb驱动后，用usb调试方式连接平板到电脑上。<br />
+打开cmd，切换到Oneclickrecovery的解压目录，执行那个EasyRecoveryV0.4.bat，他就会问你一大窜问题，这些问题都比较傻瓜，我记得一般是输入Y。（对安装驱动那步，因为我已经手动安装好了，输入N就可以了），貌似这个过程重启了两次平板。<br />
+当提示 This.. is ALMOST DONEEEE!的时候，才到了关键的步骤，前面只是传输文件到平板上。<br />
+好吧，接下来是拿起平板了。<br />
+然后我犯二了，直接重启了。不过没关系，自己手动来：关机，然后按着”音量减“ 和”开机键“ 来开机，你就会发现屏幕左上右英文提示，再按”音量增“，你就进去了一个特别的界面，就像grub开机进行选择一样。<br />
+后面的步骤和电脑上那个程序的提示差不多的，但我记得菜单的名字貌似是有少许差别的。<br />
+步骤大概就是<br />
+选择 'wipe' 然后选择 'wipe cache'<br />
+接着选择 'wipe dalvik-cache'<br />
+返回那个主菜单，选择 install.<br />
+然后选择 install from internal.<br />
+接下来选择Superuser-3.0.7-efghi-signed.zip这个文件。（前面已经自动复制到你平板上了，应该在文件列表的最后）<br />
+然后就是选择 yes.那就成功了，然后是重启，要等好久，特别是提示更新软件什么的，开机进去以后，你就自由了^_^  </p>
+<p>最后强调一下，本文仅是我的经验分享，<br />
+<em>上述操作是有一定风险的。如果哪位读者因看了本文而制造出事故，请自行负责。</em><br />
+而且本文是我一觉醒来以后再根据回忆写的，错误在所难免，也希望读者指正。    </p>
+
+		<div id="article_meta">
+				Category:
+					<a href="../../../../../category/2012-11.html">2012-11</a>
+				<br />Tags:
+					<a href="../../../../../tag/android.html">android</a>
+		</div>
+	</article>
+
+	<footer>
+		<a href="../../../../../" class="button_accent">&larr;&nbsp;&nbsp;&nbsp;Back to blog</a>
+	</footer>
+
+	<div id="comments">
+		<h2>Comments</h2>
+		<div id="disqus_thread"></div>
+		<script type="text/javascript">
+			var disqus_identifier = "posts/2012/Nov/17/asus-sl101-get-root/";
+			(function() {
+				var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+				dsq.src = 'http://khalidhsu.disqus.com/embed.js';
+				(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+			})();
+		</script>
+		<noscript>Please enable JavaScript to view <a href="http://disqus.com/?ref_noscript">comments</a>.</noscript>
+	</div>
+
+	</section>
+
+</body>
+</html>

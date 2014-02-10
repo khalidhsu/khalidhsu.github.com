@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Khalid Hsu</title><link>http://khalidhsu.github.com/</link><description></description><atom:link href="http://khalidhsu.github.com/feeds/2012-10.rss.xml" rel="self"></atom:link><lastBuildDate>Sat, 20 Oct 2012 01:19:00 +0200</lastBuildDate><item><title></title><link>http://khalidhsu.github.com/posts/2012/Oct/20/20121020/</link><description>&lt;p&gt;被欧阳拉去监考OI。  &lt;br /&gt;
+我只想说，监考的感觉很爽。&lt;br /&gt;
+那些会编程的小朋友也特有爱。  &lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Khalid Hsu</dc:creator><pubDate>Sat, 20 Oct 2012 01:19:00 +0200</pubDate><guid>tag:khalidhsu.github.com,2012-10-20:posts/2012/Oct/20/20121020/</guid><category>life</category></item><item><title>用emacs写点点博客(续)</title><link>http://khalidhsu.github.com/posts/2012/Oct/19/ddemacs2/</link><description>&lt;p&gt;终于做完了多到变态又毫无意义的数据库作业。&lt;br /&gt;
+好了，贴些代码，忘记所有的不快。&lt;br /&gt;
+上次我用emacs写点点博客时候用两个bash脚本，然后干脆修改一下，合并成一个，代码如下&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;#!/bin/bash&lt;/span&gt;
+&lt;span class="nv"&gt;self&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;$0&amp;quot;&lt;/span&gt;
+&lt;span class="nb"&gt;pushd&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;$(dirname -- $self)&amp;quot;&lt;/span&gt;&amp;gt;/dev/null
+
+ddlog&lt;span class="o"&gt;()&lt;/span&gt;
+&lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="c"&gt;#username pwds out_cookie_file&lt;/span&gt;
+    curl -c &lt;span class="nv"&gt;$3&lt;/span&gt; http://www.diandian.com/login -d &lt;span class="s2"&gt;&amp;quot;account=$1&amp;amp;password=$2&amp;amp;persistent=1&amp;quot;&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+
+ddgetfrmkey&lt;span class="o"&gt;()&lt;/span&gt;
+&lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="c"&gt;#cookiefile bgaddr out_put_ddfrmkey&lt;/span&gt;
+    curl http://www.diandian.com/dianlog/&lt;span class="nv"&gt;$2&lt;/span&gt;/new/text  -b &lt;span class="nv"&gt;$1&lt;/span&gt; |grep DDformKey|cut -d&lt;span class="s2"&gt;&amp;quot;&amp;#39;&amp;quot;&lt;/span&gt; -f 2 &amp;gt;&lt;span class="nv"&gt;$3&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+
+ddpost&lt;span class="o"&gt;()&lt;/span&gt;
+&lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="c"&gt;#cookiefile bgaddr ddfrmkey  postfile&lt;/span&gt;
+    &lt;span class="nv"&gt;cookiefile&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$1&lt;/span&gt;;  &lt;span class="nv"&gt;bgaddr&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$2&lt;/span&gt;; &lt;span class="nv"&gt;ddfrmkey&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$3&lt;/span&gt;; &lt;span class="nv"&gt;postfile&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$4&lt;/span&gt;
+    &lt;span class="nv"&gt;ddcfg&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;$postfile.dd&amp;quot;&lt;/span&gt;
+    &lt;span class="nv"&gt;tags&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt;cat &lt;span class="nv"&gt;$ddcfg&lt;/span&gt;|grep -v &lt;span class="se"&gt;\#&lt;/span&gt;|grep tags&lt;span class="sb"&gt;`&lt;/span&gt; &lt;span class="c"&gt;#has = !&lt;/span&gt;
+    &lt;span class="nv"&gt;uri&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt;cat &lt;span class="nv"&gt;$ddcfg&lt;/span&gt;|grep -v &lt;span class="se"&gt;\#&lt;/span&gt;|grep uri&lt;span class="sb"&gt;`&lt;/span&gt; &lt;span class="c"&gt;# has = !&lt;/span&gt;
+    &lt;span class="nv"&gt;formKey&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt;cat &lt;span class="nv"&gt;$ddfrmkey&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt;
+    &lt;span class="nv"&gt;markdownbody&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;python -c &lt;span class="s2"&gt;&amp;quot;import urllib; print urllib.quote(open(&amp;#39;$postfile&amp;#39;).read())&amp;quot;&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;
+    curl -b &lt;span class="nv"&gt;$cookiefile&lt;/span&gt;  http://www.diandian.com/dianlog/&lt;span class="nv"&gt;$bgaddr&lt;/span&gt;/new/text -d &lt;span class="s2"&gt;&amp;quot;formKey=$formKey&amp;amp;title=&amp;amp;markdownContent=$markdownbody&amp;amp;$uri&amp;amp;$tags&amp;amp;privacy=0&amp;amp;setTop=false&amp;amp;creativeCommonsEnable=true&amp;amp;creativeCommonsType=by_nc_sa&amp;amp;syncToWeibo=false&amp;amp;syncToQqWeibo=false&amp;amp;syncToDouban=false&amp;amp;syncToQzone=false&amp;amp;syncToRenren=false&amp;amp;syncToFacebook=false&amp;amp;syncToTwitter=false&amp;amp;syncToFlickr=false&amp;quot;&lt;/span&gt;
+
+&lt;span class="o"&gt;}&lt;/span&gt;
+
+&lt;span class="k"&gt;function &lt;/span&gt;showerr&lt;span class="o"&gt;()&lt;/span&gt;
+&lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nb"&gt;echo &lt;/span&gt;err!
+&lt;span class="o"&gt;}&lt;/span&gt;
+
+&lt;span class="k"&gt;case&lt;/span&gt; &lt;span class="nv"&gt;$1&lt;/span&gt; in  
+    -l | --log-in&lt;span class="o"&gt;)&lt;/span&gt;  
+        ddlog &lt;span class="nv"&gt;$2&lt;/span&gt; &lt;span class="nv"&gt;$3&lt;/span&gt; &lt;span class="nv"&gt;$4&lt;/span&gt;
+        ;;  
+    -g | --get-fk&lt;span class="o"&gt;)&lt;/span&gt;  
+        ddgetfrmkey &lt;span class="nv"&gt;$2&lt;/span&gt; &lt;span class="nv"&gt;$3&lt;/span&gt; &lt;span class="nv"&gt;$4&lt;/span&gt;
+        ;;
+    -p | --post&lt;span class="o"&gt;)&lt;/span&gt;  
+        ddpost &lt;span class="nv"&gt;$2&lt;/span&gt; &lt;span class="nv"&gt;$3&lt;/span&gt; &lt;span class="nv"&gt;$4&lt;/span&gt; &lt;span class="nv"&gt;$5&lt;/span&gt;
+        ;; 
+    *&lt;span class="o"&gt;)&lt;/span&gt;  
+        showerr
+        ;;  
+&lt;span class="k"&gt;esac&lt;/span&gt;  
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;再贴一段调用该bash脚本的elisp，代码如下&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c1"&gt;;;ddemacs&lt;/span&gt;
+&lt;span class="c1"&gt;;;by Khalid Hsu&lt;/span&gt;
+&lt;span class="c1"&gt;;;2012.10.17&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defvar&lt;/span&gt; &lt;span class="nv"&gt;dd-sh&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;~/bash/dd-foo.sh&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="c1"&gt;;;path of the bash script&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defvar&lt;/span&gt; &lt;span class="nv"&gt;dd-dir&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;~/.diandian&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="c1"&gt;;;dir for saving cookie and formkey&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defvar&lt;/span&gt; &lt;span class="nv"&gt;dd-acc&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;khalidhsu@gmail.com&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defvar&lt;/span&gt; &lt;span class="nv"&gt;dd-pwd&lt;/span&gt; &lt;span class="no"&gt;nil&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="c1"&gt;;;just leave it nil&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defvar&lt;/span&gt; &lt;span class="nv"&gt;dd-blog-addrs&lt;/span&gt; &lt;span class="o"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;khalidhsu&amp;quot;&lt;/span&gt;  &lt;span class="s"&gt;&amp;quot;anotherblog&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defvar&lt;/span&gt; &lt;span class="nv"&gt;dd-cfg-ext&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;.dd&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defvar&lt;/span&gt; &lt;span class="nv"&gt;dd-cookie-file&lt;/span&gt; &lt;span class="no"&gt;nil&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="c1"&gt;;;just leave it nil&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defun&lt;/span&gt; &lt;span class="nv"&gt;dd-select-blog&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;blog-list&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="s"&gt;&amp;quot;Before U post.&amp;quot;&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;let&lt;/span&gt; &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="nv"&gt;blog-list-in-list&lt;/span&gt;
+         &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;mapcon&lt;/span&gt; &lt;span class="ss"&gt;&amp;#39;list&lt;/span&gt; &lt;span class="nv"&gt;blog-list&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+        &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;ret&lt;/span&gt; &lt;span class="no"&gt;nil&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+    &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;while&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;or&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;not&lt;/span&gt; &lt;span class="nv"&gt;ret&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+               &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;length&lt;/span&gt; &lt;span class="nv"&gt;ret&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+      &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;setq&lt;/span&gt; &lt;span class="nv"&gt;ret&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;completing-read&lt;/span&gt;
+                 &lt;span class="s"&gt;&amp;quot;Select a blog:&amp;quot;&lt;/span&gt;
+                 &lt;span class="nv"&gt;blog-list-in-list&lt;/span&gt; &lt;span class="no"&gt;nil&lt;/span&gt; &lt;span class="no"&gt;t&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;car&lt;/span&gt; &lt;span class="nv"&gt;blog-list&lt;/span&gt;&lt;span class="p"&gt;))))&lt;/span&gt;
+    &lt;span class="nv"&gt;ret&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defun&lt;/span&gt; &lt;span class="nv"&gt;dd-check-dir&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="s"&gt;&amp;quot;Before U login&amp;quot;&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;not&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;file-readable-p&lt;/span&gt;
+            &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;directory-file-name&lt;/span&gt; &lt;span class="nv"&gt;dd-dir&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+      &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;make-directory&lt;/span&gt; &lt;span class="nv"&gt;dd-dir&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defun&lt;/span&gt; &lt;span class="nv"&gt;dd-save-cookie&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="c1"&gt;;;#username pwds out_cookie_file&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;shell-command&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;format&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;bash %s -l %s %s %s&amp;quot;&lt;/span&gt; &lt;span class="nv"&gt;dd-sh&lt;/span&gt;
+                         &lt;span class="nv"&gt;dd-acc&lt;/span&gt; &lt;span class="nv"&gt;dd-pwd&lt;/span&gt; &lt;span class="nv"&gt;dd-cookie-file&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defun&lt;/span&gt; &lt;span class="nv"&gt;dd-save-formkey&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="c1"&gt;;;#cookiefile bgaddr out_put_ddfrmkey&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;mapc&lt;/span&gt; &lt;span class="o"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;lambda&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;x&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+           &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;shell-command&lt;/span&gt;
+            &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;format&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;bash %s -g %s %s %s&amp;quot;&lt;/span&gt; &lt;span class="nv"&gt;dd-sh&lt;/span&gt;
+                    &lt;span class="nv"&gt;dd-cookie-file&lt;/span&gt; &lt;span class="nv"&gt;x&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;expand-file-name&lt;/span&gt;
+                                      &lt;span class="nv"&gt;x&lt;/span&gt; &lt;span class="nv"&gt;dd-dir&lt;/span&gt;&lt;span class="p"&gt;))))&lt;/span&gt;
+        &lt;span class="nv"&gt;dd-blog-addrs&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defun&lt;/span&gt; &lt;span class="nv"&gt;dd-login&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;interactive&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;dd-init&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;dd-check-dir&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;setq&lt;/span&gt; &lt;span class="nv"&gt;dd-pwd&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;read-passwd&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Password:&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;dd-save-cookie&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;dd-save-formkey&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;message&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Done.&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defun&lt;/span&gt; &lt;span class="nv"&gt;dd-post&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="s"&gt;&amp;quot;To post the dd article.&amp;quot;&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;interactive&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;dd-init&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;save-buffer&lt;/span&gt; &lt;span class="no"&gt;t&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;let&lt;/span&gt; &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="nv"&gt;ddbuf&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;buffer-file-name&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;current-buffer&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+        &lt;span class="nv"&gt;target-bg&lt;/span&gt;
+        &lt;span class="nv"&gt;target-bg-frmk&lt;/span&gt;
+        &lt;span class="nv"&gt;ddcfgf&lt;/span&gt; &lt;span class="c1"&gt;;;.dd&lt;/span&gt;
+        &lt;span class="nv"&gt;post-cmd&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt;  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;string-suffix-p&lt;/span&gt;  &lt;span class="nv"&gt;dd-cfg-ext&lt;/span&gt; &lt;span class="nv"&gt;ddbuf&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;setq&lt;/span&gt; &lt;span class="nv"&gt;ddbuf&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;substring&lt;/span&gt; &lt;span class="nv"&gt;ddbuf&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="mi"&gt;-3&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;&lt;span class="c1"&gt;;;in case the user got it wrong&lt;/span&gt;
+    &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;setq&lt;/span&gt; &lt;span class="nv"&gt;ddcfgf&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;concat&lt;/span&gt; &lt;span class="nv"&gt;ddbuf&lt;/span&gt; &lt;span class="nv"&gt;dd-cfg-ext&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+    &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;not&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;file-readable-p&lt;/span&gt; &lt;span class="nv"&gt;ddcfgf&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;progn&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;dd-cfg&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+               &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;message&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Finish the dd cfg first!&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+      &lt;span class="c1"&gt;;;else part: all-fine&lt;/span&gt;
+      &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;setq&lt;/span&gt; &lt;span class="nv"&gt;target-bg&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;dd-select-blog&lt;/span&gt; &lt;span class="nv"&gt;dd-blog-addrs&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+      &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;setq&lt;/span&gt; &lt;span class="nv"&gt;target-bg-frmk&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;expand-file-name&lt;/span&gt; &lt;span class="nv"&gt;target-bg&lt;/span&gt; &lt;span class="nv"&gt;dd-dir&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+      &lt;span class="c1"&gt;;;#cookiefile bgaddr ddfrmkey  postfile&lt;/span&gt;
+      &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;setq&lt;/span&gt; &lt;span class="nv"&gt;post-cmd&lt;/span&gt;
+            &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;format&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;bash %s -p %s %s %s %s&amp;quot;&lt;/span&gt; &lt;span class="nv"&gt;dd-sh&lt;/span&gt;
+                    &lt;span class="nv"&gt;dd-cookie-file&lt;/span&gt;  &lt;span class="nv"&gt;target-bg&lt;/span&gt; &lt;span class="nv"&gt;target-bg-frmk&lt;/span&gt; &lt;span class="nv"&gt;ddbuf&lt;/span&gt; &lt;span class="p"&gt;))&lt;/span&gt;
+      &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;m-eshell&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+      &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;insert&lt;/span&gt; &lt;span class="nv"&gt;post-cmd&lt;/span&gt;&lt;span class="p"&gt;))))&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defun&lt;/span&gt; &lt;span class="nv"&gt;dd-cfg&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="s"&gt;&amp;quot;To write the dd cfg file.&amp;quot;&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;interactive&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;save-buffer&lt;/span&gt; &lt;span class="no"&gt;t&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;let&lt;/span&gt; &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="nv"&gt;postname&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;i-get-buf-base-name&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;current-buffer&lt;/span&gt;&lt;span class="p"&gt;))))&lt;/span&gt;
+    &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;find-file&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;concat&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;buffer-file-name&lt;/span&gt;
+                        &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;current-buffer&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="nv"&gt;dd-cfg-ext&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+    &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;&amp;gt;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;+&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;point-min&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;point-max&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+        &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;progn&lt;/span&gt;
+          &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;delete-region&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;point-min&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;point-max&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+          &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;insert&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;[ddcfg]\n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+          &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;insert&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;tags=\n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+          &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;insert&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;concat&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;#uri=post%2F&amp;quot;&lt;/span&gt;
+                          &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;format-time-string&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;%Y-%m-%d&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+                          &lt;span class="s"&gt;&amp;quot;%2F&amp;quot;&lt;/span&gt; &lt;span class="nv"&gt;postname&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;\n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+          &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;save-buffer&lt;/span&gt; &lt;span class="no"&gt;t&lt;/span&gt;&lt;span class="p"&gt;)))))&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defun&lt;/span&gt; &lt;span class="nv"&gt;dd-init&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="s"&gt;&amp;quot;Exec-ed by the func of &amp;#39;login&amp;#39; and &amp;#39;post&amp;#39;.&amp;quot;&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;interactive&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;setq&lt;/span&gt; &lt;span class="nv"&gt;dd-cookie-file&lt;/span&gt;
+        &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;expand-file-name&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;ddcookie&amp;quot;&lt;/span&gt;
+                          &lt;span class="nv"&gt;dd-dir&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;defalias&lt;/span&gt; &lt;span class="ss"&gt;&amp;#39;ddp&lt;/span&gt; &lt;span class="ss"&gt;&amp;#39;dd-post&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;defalias&lt;/span&gt; &lt;span class="ss"&gt;&amp;#39;ddc&lt;/span&gt; &lt;span class="ss"&gt;&amp;#39;dd-cfg&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;defalias&lt;/span&gt; &lt;span class="ss"&gt;&amp;#39;ddl&lt;/span&gt; &lt;span class="ss"&gt;&amp;#39;dd-login&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;provide&lt;/span&gt; &lt;span class="ss"&gt;&amp;#39;dd-emacs&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;关键的是bash代码，而elisp写了这么多，只是为了我自己用起来更舒服。
+这里比较特别的地方是，由于我喜欢给文章加上标签和发布链接等信息，而又不想污染markdown文档，所以，对于每篇要发表的文章X，我都用额外的一个文件X.dd来记录附加信息。
+该文件格式如。&lt;/p&gt;
+&lt;pre config="brush:mybox;toolbar:false;"&gt;
+[ddcfg]
+tags=emacs,diandian,折腾
+#uri=post%2F2012-10-17%2Fddemacs2
+&lt;/pre&gt;
+
+&lt;p&gt;tags是要加入的标签，uri是自定义发布的链接，加了#号在前就是注释掉。
+所以每次发布文章前，执行&lt;/p&gt;
+&lt;pre config="brush:mybox;toolbar:false;"&gt;
+M－x ddc RET  
+&lt;/pre&gt;
+
+&lt;p&gt;来填写附加的信息。然后&lt;/p&gt;
+&lt;pre config="brush:mybox;toolbar:false;"&gt;
+M－x ddp RET
+&lt;/pre&gt;
+
+&lt;p&gt;就发布到博客中。
+当然，如果是第一次使用或者是cookie失效了，就先&lt;/p&gt;
+&lt;pre config="brush:mybox;toolbar:false;"&gt;
+M－x ddl RET
+&lt;/pre&gt;
+
+&lt;p&gt;来获取cookie和formkey等。&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Khalid Hsu</dc:creator><pubDate>Fri, 19 Oct 2012 00:21:00 +0200</pubDate><guid>tag:khalidhsu.github.com,2012-10-19:posts/2012/Oct/19/ddemacs2/</guid><category>emacs</category><category>diandian</category></item><item><title></title><link>http://khalidhsu.github.com/posts/2012/Oct/14/20121014/</link><description>&lt;p&gt;大四的学长们都在找工作。&lt;br /&gt;
+明年就到我了。&lt;br /&gt;
+我不想考研。不想浪费这么多的时间，只是为了一场无聊的考试。  &lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Khalid Hsu</dc:creator><pubDate>Sun, 14 Oct 2012 01:14:00 +0200</pubDate><guid>tag:khalidhsu.github.com,2012-10-14:posts/2012/Oct/14/20121014/</guid><category>life</category></item><item><title>用emacs写点点博客</title><link>http://khalidhsu.github.com/posts/2012/Oct/14/ddemacs/</link><description>&lt;p&gt;用emacs写点点博客
+发现点点还是挺不错的，清新无广告，还支持高度的自定义。不过话说回来，在网页上那个小小的文本窗口写blog绝非一件很cool的事，特别是对于emacser。 &lt;br /&gt;
+如果要用emacs写blog的话，可以通过邮件发送的方式。但我发现用邮件发布的话，如果你要加入标签，标签还是会存在于文本的正文中。（不知道点点的攻城狮现在有没有改进）   &lt;br /&gt;
+当然，我喜欢另外一种办法，那就是通过模拟http请求来写blog。  &lt;/p&gt;
+&lt;p&gt;用firebug监视一下点点发布文章的HTTP请求，可以发现，发布文章的post请求大致为&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="s2"&gt;&amp;quot;formKey=$formKey&amp;amp;title=&amp;amp;markdownContent=$markdownbody&amp;amp;$uri&amp;amp;$tags&amp;amp;privacy=0&amp;amp;setTop=false&amp;amp;creativeCommonsEnable=false&amp;amp;creativeCommonsType=by_nc_sa&amp;amp;syncToWeibo=false&amp;amp;syncToQqWeibo=false&amp;amp;syncToDouban=false&amp;amp;syncToQzone=false&amp;amp;syncToRenren=false&amp;amp;syncToFacebook=false&amp;amp;syncToTwitter=false&amp;amp;syncToFlickr=false&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;其中$formkey为对应每个博客的一个数字ID。$markdownbody为发布的内容（我用的是markdown编辑模式发布的）
+其他的参数也没什么好解释的，就是字面的意思。&lt;/p&gt;
+&lt;p&gt;获取formKey的办法&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;curl http://www.diandian.com/dianlog/khalidhsu/new/text  -b ~/ddcookie |grep DDformKey|cut -d&lt;span class="s2"&gt;&amp;quot;&amp;#39;&amp;quot;&lt;/span&gt; -f 2 &amp;gt;~/ddformkey
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;其中khalidhsu为我的博客地址，获取的ddformkey保存为~/ddformkey。 &lt;br /&gt;
+等等，你还没拿到cookie哦，要先把这块不能吃的cookie拿到手才能干活的。代码如下：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;curl -c ~/ddcookie http://www.diandian.com/login -d &lt;span class="s2"&gt;&amp;quot;account=khalidhsu%40gmail.com&amp;amp;password=youpassword&amp;amp;persistent=1&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;将上面的账户名和密码改为你的即可。执行一下，得到的cookie就保存在~/ddcookie。&lt;br /&gt;
+以上的几步就是发表文章的关键几步了。&lt;br /&gt;
+实际上，我把这写代码写成两个bash脚本，然后再用elisp调用的。&lt;br /&gt;
+听起来很麻烦？当然不会，我在emacs里面写好文章，只需要简单的两步就可以发表了^_^&lt;br /&gt;
+好了，先写到这，有空再补充一下。 &lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Khalid Hsu</dc:creator><pubDate>Sun, 14 Oct 2012 00:00:00 +0200</pubDate><guid>tag:khalidhsu.github.com,2012-10-14:posts/2012/Oct/14/ddemacs/</guid><category>emacs</category><category>diandian</category></item><item><title></title><link>http://khalidhsu.github.com/posts/2012/Oct/12/20121012/</link><description>&lt;p&gt;老板娘切伤手指了。&lt;br /&gt;
+切的很深。&lt;br /&gt;
+还伤心的开玩笑说，一截没了。  &lt;/p&gt;
+&lt;p&gt;希望她快点好起来。  &lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Khalid Hsu</dc:creator><pubDate>Fri, 12 Oct 2012 01:13:00 +0200</pubDate><guid>tag:khalidhsu.github.com,2012-10-12:posts/2012/Oct/12/20121012/</guid><category>life</category></item><item><title></title><link>http://khalidhsu.github.com/posts/2012/Oct/01/20121001/</link><description>&lt;p&gt;Fresh Start.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Khalid Hsu</dc:creator><pubDate>Mon, 01 Oct 2012 18:17:00 +0200</pubDate><guid>tag:khalidhsu.github.com,2012-10-01:posts/2012/Oct/01/20121001/</guid><category>life</category></item></channel></rss>

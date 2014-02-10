@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link rel="stylesheet" type="text/css" href="../../../../../theme/css/style.css">
+	<!--<link rel="stylesheet/less" type="text/css" href="/theme/css/style.less">-->
+	<!--<script src="/theme/js/less.js" type="text/javascript"></script>-->
+        <script src="/theme/js/clicki.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="../../../../../theme/css/pygments.css">
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:800,400,300|Inconsolata' rel='stylesheet' type='text/css'>
+
+	<link href="http://khalidhsu.github.com/" type="application/atom+xml" rel="alternate" title="Khalid Hsu ATOM Feed" />
+		<link href="http://khalidhsu.github.com/feeds/all.rss.xml" type="application/atom+xml" rel="alternate" title="Khalid Hsu RSS Feed" />
+
+
+		<title>Khalid Hsu</title>
+		<meta charset="utf-8" />
+</head>
+<body>
+	<section id="sidebar">
+		<figure id="user_logo">
+            <a href="../../../../.."><div class="logo">&nbsp;</div></a>
+		</figure>
+
+		<div class="user_meta">
+            <h1 id="user"><a href="../../../../.." class="">Khalid Hsu</a></h1>
+			<h2></h2>
+			<ul>
+					<li><a href="http://khalidhsu.github.com/categories.html">Cate</a></li>
+					<li><a href="http://khalidhsu.github.com/tags.html">Tags</a></li>
+					<li><a href="http://khalidhsu.github.com/feeds/all.atom.xml">RSS</a></li>
+					<li><a href="http://khalidhsu.github.com/pages/about.html">ABOUT</a></li>
+			</ul>
+		</div>
+		<footer>
+			<address>
+				Powered by <a href="http://pelican.notmyidea.org/">Pelican</a>,
+		                theme by <a href="https://github.com/wting/pelican-svbtle">wting</a>.
+			</address>
+		</footer>
+	</section>
+
+	<section id="posts">
+	<header>
+		<h1>Khalid Hsu's blog</h1>
+		<h3>Posted Tue 14 May 2013</h3>
+	</header>
+	<article>
+		<h1 id="title">
+			<a href="../../../../../posts/2013/May/14/tank-teach-01/" rel="bookmark"
+				title="Permalink to 一个Pygame版坦克大战的诞生(01)">一个Pygame版坦克大战的诞生(01)</a>
+		</h1>
+		<p>这个学期软件工程课上要求制作一个游戏，一个经典得不能再经典的游戏--坦克大战。然后还要求写N篇实验报告。<br />
+说实话，花那么多时间写实验报告，到最后留它在某个角落里发霉，还不如写成教程发布到网上。要是有人能够从中得到一点点帮助，那就是一件有意义的事情。所以就有了这个教程。  <br />
+这是一个入门教程，希望能给刚学python又想写游戏的人提供一点帮助。大神请直接无视此教程。  <br />
+关于什么是pygame，在此不再赘述。废话少说，开门见山。    </p>
+<p>先来个简单的，建立一个窗口：    </p>
+<div class="highlight"><pre><span class="c">#!/usr/bin/env python    </span>
+<span class="c">#-*-coding:utf-8-*-  </span>
+<span class="kn">import</span> <span class="nn">pygame</span>  
+<span class="n">pygame</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>    <span class="c">#pygame初始化  </span>
+<span class="n">size</span><span class="o">=</span><span class="p">[</span><span class="mi">700</span><span class="p">,</span><span class="mi">500</span><span class="p">]</span>    <span class="c">#指定窗口尺寸  </span>
+<span class="n">screen</span><span class="o">=</span><span class="n">pygame</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">set_mode</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>    <span class="c">#新建一个窗口  </span>
+<span class="n">pygame</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">set_caption</span><span class="p">(</span><span class="s">&quot;坦克大战&quot;</span><span class="p">)</span>    <span class="c">#设置窗口标题  </span>
+<span class="n">done</span><span class="o">=</span><span class="bp">False</span>  
+<span class="k">while</span> <span class="n">done</span><span class="o">==</span><span class="bp">False</span><span class="p">:</span>  
+    <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>   
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">QUIT</span><span class="p">:</span>   
+            <span class="n">done</span><span class="o">=</span><span class="bp">True</span>   
+    <span class="n">pygame</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">flip</span><span class="p">()</span><span class="c">#刷新屏幕  </span>
+<span class="n">pygame</span><span class="o">.</span><span class="n">quit</span> <span class="p">()</span>  
+</pre></div>
+
+
+<p>前面几句是常规初始化用的。而对于后面的循环，则是从pygame的事件列表(event queue)中取出事件，判断事件类型并做相应操作。  </p>
+<p>什么是事件？例如你移动了鼠标，按下了键盘按键，甚至松开了键盘按键等，这些都是事件。<br />
+而事件则有其相应的类型，例如按下按键，则是pygame.KEYDOWN，释放按键，则是pygame.KEYUP。<br />
+pygame将一大堆发生了的事件储存起来，使用pygame.event.get()方法能获取到这些事件，然后你就可以做相应的处理。<br />
+所以以上这个循环的作用是判断获取的事件是否为pygame.QUIT，是则设置done为True，结束循环。  </p>
+<p>你可以试试把done=True这句改成pass（即什么也不干），当你再点击窗口的关闭按钮时候，你会发现窗口无法关闭了~~哈哈<br />
+知道怎么关闭不？windows用户请按Ctrl-Alt-Delete呼出任务管理器，找到那个python的进程并干掉，linux用户也可以用System Monitor之类的软件来搞定，不过我更喜欢打命令:  </p>
+<div class="highlight"><pre>ps -ef|grep python   <span class="c">#找到进程的PID  </span>
+<span class="nb">kill</span> -s 9 PID     <span class="c">#干掉它,PID换成上面得到的数字号  </span>
+</pre></div>
+
+
+<p>再干点别的吧，画个红色的圆。<br />
+红色怎样表示：<br />
+red =   [255,  0,  0]<br />
+这是RGB表示法嘛，R为255，G为0，B也为0。（注意数字的范围是0~255）<br />
+色光的三原色是RGB，如今G和B都为0，只有R，还是所以就是红色咯~~还是正红呢！  </p>
+<p>那怎么画圆：<br />
+pygame.draw.circle(screen,red,[200,200],50)<br />
+pygame.draw.circle是画圆的函数，你可以到 <a href="http://www.pygame.org/docs/ref/draw.html">这里</a> 看到pygame.draw支持画的各种图形和相应的参数 。<br />
+这个screen就是刚刚新建的窗口，也就是说，在这个窗口中画。当然你也可以画在别的看不见的地方，例如内存中“画布”，这个后面再说吧。<br />
+red就是上面定义的红色<br />
+[200,200]是圆的坐标，50则是半径  </p>
+<p>所以增加两行代码，长这样了：  </p>
+<div class="highlight"><pre><span class="c">#!/usr/bin/env python    </span>
+<span class="c">#-*-coding:utf-8-*-  </span>
+<span class="kn">import</span> <span class="nn">pygame</span>  
+<span class="n">pygame</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>    <span class="c">#pygame初始化  </span>
+<span class="n">red</span> <span class="o">=</span>   <span class="p">[</span><span class="mi">255</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">]</span>  
+<span class="n">size</span><span class="o">=</span><span class="p">[</span><span class="mi">700</span><span class="p">,</span><span class="mi">500</span><span class="p">]</span>    <span class="c">#指定窗口尺寸  </span>
+<span class="n">screen</span><span class="o">=</span><span class="n">pygame</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">set_mode</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>    <span class="c">#新建一个窗口  </span>
+<span class="n">pygame</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">set_caption</span><span class="p">(</span><span class="s">&quot;坦克大战&quot;</span><span class="p">)</span>    <span class="c">#设置窗口标题  </span>
+<span class="n">done</span><span class="o">=</span><span class="bp">False</span>  
+<span class="k">while</span> <span class="n">done</span><span class="o">==</span><span class="bp">False</span><span class="p">:</span>  
+    <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>   
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">QUIT</span><span class="p">:</span>   
+            <span class="n">done</span><span class="o">=</span><span class="bp">True</span>  
+    <span class="n">pygame</span><span class="o">.</span><span class="n">draw</span><span class="o">.</span><span class="n">circle</span><span class="p">(</span><span class="n">screen</span><span class="p">,</span><span class="n">red</span><span class="p">,[</span><span class="mi">200</span><span class="p">,</span><span class="mi">200</span><span class="p">],</span><span class="mi">50</span><span class="p">)</span>  
+    <span class="n">pygame</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">flip</span><span class="p">()</span><span class="c">#刷新屏幕  </span>
+<span class="n">pygame</span><span class="o">.</span><span class="n">quit</span> <span class="p">()</span>  
+</pre></div>
+
+
+<p>运行看看你的红色的圆出来没？    </p>
+<p>(本文涉及的代码已经上传到<a href="https://github.com/khalidhsu/TankWar">Github中</a>)   </p>
+
+		<div id="article_meta">
+				Category:
+					<a href="../../../../../category/2013-05.html">2013-05</a>
+				<br />Tags:
+					<a href="../../../../../tag/python.html">python</a>
+					<a href="../../../../../tag/pygame.html">pygame</a>
+		</div>
+	</article>
+
+	<footer>
+		<a href="../../../../../" class="button_accent">&larr;&nbsp;&nbsp;&nbsp;Back to blog</a>
+	</footer>
+
+	<div id="comments">
+		<h2>Comments</h2>
+		<div id="disqus_thread"></div>
+		<script type="text/javascript">
+			var disqus_identifier = "posts/2013/May/14/tank-teach-01/";
+			(function() {
+				var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+				dsq.src = 'http://khalidhsu.disqus.com/embed.js';
+				(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+			})();
+		</script>
+		<noscript>Please enable JavaScript to view <a href="http://disqus.com/?ref_noscript">comments</a>.</noscript>
+	</div>
+
+	</section>
+
+</body>
+</html>

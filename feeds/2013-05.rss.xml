@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Khalid Hsu</title><link>http://khalidhsu.github.com/</link><description></description><atom:link href="http://khalidhsu.github.com/feeds/2013-05.rss.xml" rel="self"></atom:link><lastBuildDate>Wed, 29 May 2013 23:27:00 +0200</lastBuildDate><item><title></title><link>http://khalidhsu.github.com/posts/2013/May/29/20130529/</link><description>&lt;p&gt;辉哥约去游泳。刚好最近天气热，跑步各种不爽。&lt;br /&gt;
+感觉体能恢复的很好，游了一下午，也还挺精神的样子。  &lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Khalid Hsu</dc:creator><pubDate>Wed, 29 May 2013 23:27:00 +0200</pubDate><guid>tag:khalidhsu.github.com,2013-05-29:posts/2013/May/29/20130529/</guid><category>life</category></item><item><title></title><link>http://khalidhsu.github.com/posts/2013/May/28/20130528/</link><description>&lt;p&gt;长沙之行，忧喜交参。&lt;br /&gt;
+认真总结得失，勤加修炼内功。  &lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Khalid Hsu</dc:creator><pubDate>Tue, 28 May 2013 15:34:00 +0200</pubDate><guid>tag:khalidhsu.github.com,2013-05-28:posts/2013/May/28/20130528/</guid><category>life</category></item><item><title></title><link>http://khalidhsu.github.com/posts/2013/May/14/20130514/</link><description>&lt;div class="highlight"&gt;&lt;pre&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;YJ生日，在东北菜馆庆祝。  &lt;br /&gt;
+YJ点的菜很合我口味，还是说我也很喜欢东北菜。  &lt;br /&gt;
+没有特能喝酒的大神虐场，今晚算是喝的最舒服的一次了。  &lt;br /&gt;
+接着是ZY入党事情。&lt;br /&gt;
+好巧，上次华哥生日那天，ZW也要办同样的事情。    &lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Khalid Hsu</dc:creator><pubDate>Tue, 14 May 2013 21:31:00 +0200</pubDate><guid>tag:khalidhsu.github.com,2013-05-14:posts/2013/May/14/20130514/</guid><category>life</category></item><item><title>一个Pygame版坦克大战的诞生(01)</title><link>http://khalidhsu.github.com/posts/2013/May/14/tank-teach-01/</link><description>&lt;p&gt;这个学期软件工程课上要求制作一个游戏，一个经典得不能再经典的游戏--坦克大战。然后还要求写N篇实验报告。&lt;br /&gt;
+说实话，花那么多时间写实验报告，到最后留它在某个角落里发霉，还不如写成教程发布到网上。要是有人能够从中得到一点点帮助，那就是一件有意义的事情。所以就有了这个教程。  &lt;br /&gt;
+这是一个入门教程，希望能给刚学python又想写游戏的人提供一点帮助。大神请直接无视此教程。  &lt;br /&gt;
+关于什么是pygame，在此不再赘述。废话少说，开门见山。    &lt;/p&gt;
+&lt;p&gt;先来个简单的，建立一个窗口：    &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;#!/usr/bin/env python    &lt;/span&gt;
+&lt;span class="c"&gt;#-*-coding:utf-8-*-  &lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;pygame&lt;/span&gt;  
+&lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;init&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;    &lt;span class="c"&gt;#pygame初始化  &lt;/span&gt;
+&lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;700&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;500&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;    &lt;span class="c"&gt;#指定窗口尺寸  &lt;/span&gt;
+&lt;span class="n"&gt;screen&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;display&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_mode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;    &lt;span class="c"&gt;#新建一个窗口  &lt;/span&gt;
+&lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;display&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_caption&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;坦克大战&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;    &lt;span class="c"&gt;#设置窗口标题  &lt;/span&gt;
+&lt;span class="n"&gt;done&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;  
+&lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="n"&gt;done&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;  
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;event&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;event&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;   
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;event&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;QUIT&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;   
+            &lt;span class="n"&gt;done&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="bp"&gt;True&lt;/span&gt;   
+    &lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;display&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;flip&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="c"&gt;#刷新屏幕  &lt;/span&gt;
+&lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;quit&lt;/span&gt; &lt;span class="p"&gt;()&lt;/span&gt;  
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;前面几句是常规初始化用的。而对于后面的循环，则是从pygame的事件列表(event queue)中取出事件，判断事件类型并做相应操作。  &lt;/p&gt;
+&lt;p&gt;什么是事件？例如你移动了鼠标，按下了键盘按键，甚至松开了键盘按键等，这些都是事件。&lt;br /&gt;
+而事件则有其相应的类型，例如按下按键，则是pygame.KEYDOWN，释放按键，则是pygame.KEYUP。&lt;br /&gt;
+pygame将一大堆发生了的事件储存起来，使用pygame.event.get()方法能获取到这些事件，然后你就可以做相应的处理。&lt;br /&gt;
+所以以上这个循环的作用是判断获取的事件是否为pygame.QUIT，是则设置done为True，结束循环。  &lt;/p&gt;
+&lt;p&gt;你可以试试把done=True这句改成pass（即什么也不干），当你再点击窗口的关闭按钮时候，你会发现窗口无法关闭了~~哈哈&lt;br /&gt;
+知道怎么关闭不？windows用户请按Ctrl-Alt-Delete呼出任务管理器，找到那个python的进程并干掉，linux用户也可以用System Monitor之类的软件来搞定，不过我更喜欢打命令:  &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;ps -ef|grep python   &lt;span class="c"&gt;#找到进程的PID  &lt;/span&gt;
+&lt;span class="nb"&gt;kill&lt;/span&gt; -s 9 PID     &lt;span class="c"&gt;#干掉它,PID换成上面得到的数字号  &lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;再干点别的吧，画个红色的圆。&lt;br /&gt;
+红色怎样表示：&lt;br /&gt;
+red =   [255,  0,  0]&lt;br /&gt;
+这是RGB表示法嘛，R为255，G为0，B也为0。（注意数字的范围是0~255）&lt;br /&gt;
+色光的三原色是RGB，如今G和B都为0，只有R，还是所以就是红色咯~~还是正红呢！  &lt;/p&gt;
+&lt;p&gt;那怎么画圆：&lt;br /&gt;
+pygame.draw.circle(screen,red,[200,200],50)&lt;br /&gt;
+pygame.draw.circle是画圆的函数，你可以到 &lt;a href="http://www.pygame.org/docs/ref/draw.html"&gt;这里&lt;/a&gt; 看到pygame.draw支持画的各种图形和相应的参数 。&lt;br /&gt;
+这个screen就是刚刚新建的窗口，也就是说，在这个窗口中画。当然你也可以画在别的看不见的地方，例如内存中“画布”，这个后面再说吧。&lt;br /&gt;
+red就是上面定义的红色&lt;br /&gt;
+[200,200]是圆的坐标，50则是半径  &lt;/p&gt;
+&lt;p&gt;所以增加两行代码，长这样了：  &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;#!/usr/bin/env python    &lt;/span&gt;
+&lt;span class="c"&gt;#-*-coding:utf-8-*-  &lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;pygame&lt;/span&gt;  
+&lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;init&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;    &lt;span class="c"&gt;#pygame初始化  &lt;/span&gt;
+&lt;span class="n"&gt;red&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;   &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;255&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;  
+&lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;700&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;500&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;    &lt;span class="c"&gt;#指定窗口尺寸  &lt;/span&gt;
+&lt;span class="n"&gt;screen&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;display&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_mode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;    &lt;span class="c"&gt;#新建一个窗口  &lt;/span&gt;
+&lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;display&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_caption&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;坦克大战&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;    &lt;span class="c"&gt;#设置窗口标题  &lt;/span&gt;
+&lt;span class="n"&gt;done&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;  
+&lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="n"&gt;done&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;  
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;event&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;event&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;   
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;event&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;QUIT&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;   
+            &lt;span class="n"&gt;done&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="bp"&gt;True&lt;/span&gt;  
+    &lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;draw&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;circle&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;screen&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;red&lt;/span&gt;&lt;span class="p"&gt;,[&lt;/span&gt;&lt;span class="mi"&gt;200&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;200&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;&lt;span class="mi"&gt;50&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;  
+    &lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;display&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;flip&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="c"&gt;#刷新屏幕  &lt;/span&gt;
+&lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;quit&lt;/span&gt; &lt;span class="p"&gt;()&lt;/span&gt;  
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;运行看看你的红色的圆出来没？    &lt;/p&gt;
+&lt;p&gt;(本文涉及的代码已经上传到&lt;a href="https://github.com/khalidhsu/TankWar"&gt;Github中&lt;/a&gt;)   &lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Khalid Hsu</dc:creator><pubDate>Tue, 14 May 2013 07:43:00 +0200</pubDate><guid>tag:khalidhsu.github.com,2013-05-14:posts/2013/May/14/tank-teach-01/</guid><category>python</category><category>pygame</category></item><item><title></title><link>http://khalidhsu.github.com/posts/2013/May/12/20130512/</link><description>&lt;p&gt;母亲节，没什么能表示的，除了打电话问候。&lt;br /&gt;
+今天也是汶川地震五周年。  &lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Khalid Hsu</dc:creator><pubDate>Sun, 12 May 2013 23:33:00 +0200</pubDate><guid>tag:khalidhsu.github.com,2013-05-12:posts/2013/May/12/20130512/</guid><category>life</category></item><item><title></title><link>http://khalidhsu.github.com/posts/2013/May/07/20130507/</link><description>&lt;p&gt;三月二十八，奶奶生日。  &lt;br /&gt;
+爷爷说要提前在周日庆祝，因为儿孙们才有空。  &lt;br /&gt;
+但我还是没能回去。  &lt;br /&gt;
+回去见一下亲人，变成很遥远的事情。  &lt;br /&gt;
+奶奶说，一年才见我一次。这句话真的很沉重。    &lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Khalid Hsu</dc:creator><pubDate>Tue, 07 May 2013 15:11:00 +0200</pubDate><guid>tag:khalidhsu.github.com,2013-05-07:posts/2013/May/07/20130507/</guid><category>life</category></item><item><title></title><link>http://khalidhsu.github.com/posts/2013/May/01/20130501/</link><description>&lt;p&gt;五一，放一天的假。没有任何放假的感觉。&lt;br /&gt;
+天气很阴沉，压抑。焦虑的感觉比平常更加严重。  &lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Khalid Hsu</dc:creator><pubDate>Wed, 01 May 2013 14:19:00 +0200</pubDate><guid>tag:khalidhsu.github.com,2013-05-01:posts/2013/May/01/20130501/</guid><category>life</category></item></channel></rss>

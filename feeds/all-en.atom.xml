@@ -1,0 +1,497 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Khalid Hsu</title><link href="http://khalidhsu.github.com/" rel="alternate"></link><link href="http://khalidhsu.github.com/feeds/all-en.atom.xml" rel="self"></link><id>http://khalidhsu.github.com/</id><updated>2014-02-07T22:06:00+01:00</updated><entry><title>定時重啓非智能路由</title><link href="http://khalidhsu.github.com/posts/2014/Feb/07/auto-reboot-router/" rel="alternate"></link><updated>2014-02-07T22:06:00+01:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2014-02-07:posts/2014/Feb/07/auto-reboot-router/</id><summary type="html">&lt;p&gt;最近路由智能的概念，讓這個被遺忘在客廳角落積滿灰塵的破盒子重新煥發光彩，搖身變成各互聯網公司眼中流量入口的必爭之地。&lt;br /&gt;
+不過本文所述的路由器，並非近期大紅大紫的智能路由。&lt;br /&gt;
+而恰恰是因爲我手頭這款路由器極其不智能，才有此無聊折騰。&lt;br /&gt;
+首先，感謝手頭這款路由器。它陪伴我度過了2014的春節。期間它超高負荷，運作不斷，服務了大大小小的各種設備，包括我的PC，各位親戚朋友的手機等等。如此艱難困苦它也沒有半句怨言，實屬難得。&lt;br /&gt;
+不過話說回來，這台路由器還真挺搓的。至於它有多搓、哪裏搓，我沒有這個精氣神去細數。它是哪個牌子哪個型號的，我也不黑它。它滿足不了我，不代表滿足不了其他人。&lt;br /&gt;
+但是，它有一個明顯的缺點讓我特不爽特想吐槽，就是他的持久力不夠！有點類似內存泄漏的症狀，運作時間一長就會神經兮兮，連後臺管理頁面都無法訪問。此刻只能無奈地給它來個硬重啓。然後它立即又沒心沒肺的滿血復活，甚至比吃了菠菜的大力水手還要猛N倍，完全沒有剛剛的痛苦。 &lt;br /&gt;
+這樣看來，要解決這個問題也不是沒辦法的，每天給它重啓一遍就行。此神經病雖未能根治，但湊合着也還能過日子。&lt;br /&gt;
+當然，每天都屁顛屁顛的來到路由面前按一下重啓，然後又屁顛屁顛的回到電腦面前，這事情可不是人幹的，至少我不會這樣幹。&lt;br /&gt;
+實際上我的第一個解決辦法是，在X寶上買了一個定時開關，設定給路由器的開關時間就OK了。不過這可憐的定時開關，沒活幾天就因爲一個意外而短路一命嗚呼了，劇情比韓劇還要狗血。&lt;br /&gt;
+更傷心的是，臨近過年X寶上的賣家都說要等春節過後才發貨。擦，無奈之下就有了第二個方法。  &lt;/p&gt;
+&lt;p&gt;方法二其實也很簡單，路由器的後臺管理頁面一般都提供重啓功能。咱就直接寫個腳本模仿一下後臺操作。用curl那就是：  &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;curl &lt;span class="s1"&gt;&amp;#39;http://192.168.1.1/userRpm/SysRebootRpm.htm?Reboot=%D6%D8%C6%F4%C2%B7%D3%C9%C6%F7&amp;#39;&lt;/span&gt; -H &lt;span class="s1"&gt;&amp;#39;Authorization: Basic dXNlcjpwYXNzd29yZA==&amp;#39;&lt;/span&gt;  
+&lt;span class="c"&gt;# 常見的路由器都用HTTP基本認證，也就是Authorization這個header，base64編碼  &lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;只要執行一下這行命令就能重啓路由了。不過如果赤裸裸的照做，那用戶體驗也太差了。重啓一下路由我得等個把分鐘才能連上wifi。時間比金錢重要，沒理由把青春揮霍在這。  &lt;/p&gt;
+&lt;p&gt;我覺得在某一個時間讓路由器自動重啓更好。對我來說，凌晨5點半是個不錯的時間，因爲我通常不會熬夜到這個時間。不過此時電腦關了，crontab無效。我也不喜歡讓手機，平板承擔如此苦逼的定時任務，只好辛苦一下神聖的gae了。在此感谢它给我，還有和我一樣飽受專制壓迫的廣大網民带来的精神自由。  &lt;/p&gt;
+&lt;p&gt;說明一下，要通過gae來重啓路由，你得先在路由中設置允許遠程web管理。另外，因爲每次重啓都會變動IP，所以你還得開啓路由的動態DNS（DDNS）。  &lt;/p&gt;
+&lt;p&gt;下面，建立一個gae工程（我直接在sdk的demo上稍作改動）：&lt;br /&gt;
+autorouter.py：  &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;cgi&lt;/span&gt;  
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;webapp2&lt;/span&gt;  
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;google.appengine.api&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;urlfetch&lt;/span&gt;  
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;reboot_router&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;  
+  &lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;http://yourname.eicp.net:8123/userRpm/SysRebootRpm.htm?Reboot=%D6%D8%C6&lt;/span&gt;&lt;span class="si"&gt;%F&lt;/span&gt;&lt;span class="s"&gt;4%C2%B7%D3%C9%C6&lt;/span&gt;&lt;span class="si"&gt;%F&lt;/span&gt;&lt;span class="s"&gt;7&amp;#39;&lt;/span&gt;  
+  &lt;span class="n"&gt;header_authorized&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;Basic dXNlcjpwYXNzd29yZA==&amp;#39;&lt;/span&gt;  
+  &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;urlfetch&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;fetch&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  
+                          &lt;span class="n"&gt;method&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;urlfetch&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;GET&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  
+                          &lt;span class="n"&gt;headers&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;Authorization&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;header_authorized&lt;/span&gt; &lt;span class="p"&gt;})&lt;/span&gt;  
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;MainPage&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;webapp2&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;RequestHandler&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;  
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;  
+    &lt;span class="n"&gt;reboot_router&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;  
+
+&lt;span class="n"&gt;app&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;webapp2&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;WSGIApplication&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;  
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;MainPage&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;  
+&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;debug&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="bp"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;  
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;也就是直接用urlfetch發出一個一樣的http請求，目標域名是我在花生殼上註冊得來的。  &lt;/p&gt;
+&lt;p&gt;下面设置定时任务，每天凌晨五點半之前我應該都能按計劃離開電腦去睡覺。別忘了還有設置timezone。&lt;br /&gt;
+cron.yaml：  &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="l-Scalar-Plain"&gt;cron&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt;  
+&lt;span class="p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;description&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;auto reboot the router&lt;/span&gt;  
+  &lt;span class="l-Scalar-Plain"&gt;url&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;/&lt;/span&gt;  
+  &lt;span class="l-Scalar-Plain"&gt;schedule&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;every day 05:30&lt;/span&gt;  
+  &lt;span class="l-Scalar-Plain"&gt;timezone&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;Asia/Hong_Kong&lt;/span&gt;  
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;最好更改一下訪問權限，如果不想其他人幫忙重啓路由。&lt;br /&gt;
+handlers增加login: admin  &lt;/p&gt;
+&lt;p&gt;app.yaml：  &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="l-Scalar-Plain"&gt;application&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;khalidrouter&lt;/span&gt;  
+&lt;span class="l-Scalar-Plain"&gt;version&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;1&lt;/span&gt;  
+&lt;span class="l-Scalar-Plain"&gt;runtime&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;python27&lt;/span&gt;  
+&lt;span class="l-Scalar-Plain"&gt;api_version&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;1&lt;/span&gt;  
+&lt;span class="l-Scalar-Plain"&gt;threadsafe&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;yes&lt;/span&gt;  
+
+&lt;span class="l-Scalar-Plain"&gt;handlers&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt;  
+&lt;span class="p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;url&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;.*&lt;/span&gt;  
+  &lt;span class="l-Scalar-Plain"&gt;script&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;autorouter.app&lt;/span&gt;  
+  &lt;span class="l-Scalar-Plain"&gt;login&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;admin&lt;/span&gt;  
+&lt;span class="l-Scalar-Plain"&gt;libraries&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt;  
+&lt;span class="p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;name&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;webapp2&lt;/span&gt;  
+  &lt;span class="l-Scalar-Plain"&gt;version&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;2.5.2&amp;quot;&lt;/span&gt;  
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;a href="https://github.com/khalidhsu/autorouter"&gt;注：上述文件已經放到github中 。&lt;/a&gt; &lt;/p&gt;
+&lt;p&gt;最後還得注意一點，那就是路由器的撥號連接最好設置成自動連接，不要設置成“按需連接"。以保證gae發出重啓指令時候，路由是在線的。&lt;br /&gt;
+好吧，爲了這破路由，傾注了一池廢話。要是它能刷openwrt，一切都不必如此。   &lt;/p&gt;</summary><category term="router"></category><category term="gae"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2014/Feb/05/20140205/" rel="alternate"></link><updated>2014-02-05T00:28:00+01:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2014-02-05:posts/2014/Feb/05/20140205/</id><summary type="html">&lt;p&gt;和老同學相聚。&lt;br /&gt;
+爲人父、爲人母的已不在少數。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2014/Jan/31/20140131/" rel="alternate"></link><updated>2014-01-31T00:39:00+01:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2014-01-31:posts/2014/Jan/31/20140131/</id><summary type="html">&lt;p&gt;春節姐夫帶着一夥人去廣西旅遊。年初一先來我們這。&lt;br /&gt;
+我泡功夫茶的功夫還是沒到家，結果還得向姐夫學習。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title>長沙，落幕</title><link href="http://khalidhsu.github.com/posts/2013/Nov/21/20131121/" rel="alternate"></link><updated>2013-11-21T17:53:00+01:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-11-21:posts/2013/Nov/21/20131121/</id><summary type="html">&lt;p&gt;長沙的區域賽結束了，意味着我也该离开了。突然有種捨不得的感覺。 &lt;br /&gt;
+ACM就是這樣一個比賽，她讓你着迷，讓你瘋狂，讓你難捨難分。      &lt;br /&gt;
+當你深陷其中，一次又一次提交答案，一次又一次的反思和怀疑，但服務器依舊冷血無情的返回一個WA，甚至RE，TLE...&lt;br /&gt;
+正當你絕望與無奈之際，最後一次提交，嘴裏唸叨着，這次再不過就做別的題去！在無限窘迫的等待中，服務器终遂如人愿的返回一個激動人心的Accepted，一個亮瞎眼睛的Yes！&lt;br /&gt;
+你和你的隊友按捺不住，一聲尖叫，拍案而起，差點沒把椅子推倒。然後拍拍胸口，深深地呼一口氣，彷彿卸下久壓在背上的一座大山。&lt;br /&gt;
+你驚動了四座。你對面的大神暗自偷笑，不就過了一道水題麼？&lt;br /&gt;
+但你沒有停止，繼續迎接下一個難題，面對下一個挑戰......  &lt;/p&gt;
+&lt;p&gt;也許多年後，再回首前塵往事，這些難忘的經歷，會再次讓我熱淚盈眶。&lt;br /&gt;
+感謝我的隊友，獸獸和Ismdeep。暑假一起刷題的感覺真棒！&lt;br /&gt;
+也感谢我的学长，欧阳大神，killzhu大神，明智大神！  &lt;br /&gt;
+長沙的區域賽結束了，收拾收拾，準備去找工作。  &lt;/p&gt;
+&lt;p&gt;PS：&lt;br /&gt;
+&lt;a href="http://user.qzone.qq.com/690707520/blog/1384842314"&gt;這是獸獸的退役帖&lt;/a&gt;，大三的孩子，说要去考研 &lt;br /&gt;
+&lt;a href="http://www.ismdeep.tk/?post/cnwxuk"&gt;Ismdeep用TeX重新排版了&lt;/a&gt;   &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Oct/11/20131011/" rel="alternate"></link><updated>2013-10-11T12:47:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-10-11:posts/2013/Oct/11/20131011/</id><summary type="html">&lt;p&gt;終於抽出時間，把Gnome2換成xfce4。是的，今天之前，我一直在用Gnome2。    &lt;br /&gt;
+現在，感覺就像開始了新的生活。连走路都比以前要轻快。     &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Sep/25/20130925/" rel="alternate"></link><updated>2013-09-25T22:29:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-09-25:posts/2013/Sep/25/20130925/</id><summary type="html">&lt;p&gt;老朱和啊皮一起搞的生日party。  &lt;br /&gt;
+菜是炜少点的菜，自然全是湘菜的style。  &lt;br /&gt;
+后來大家玩的比较没节操，一群人在学院前的草地上蛋糕大战。    &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Sep/04/20130904/" rel="alternate"></link><updated>2013-09-04T21:28:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-09-04:posts/2013/Sep/04/20130904/</id><summary type="html">&lt;p&gt;小敏子生日，尽兴。 &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Aug/14/wdidle3/" rel="alternate"></link><updated>2013-08-14T19:30:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-08-14:posts/2013/Aug/14/wdidle3/</id><summary type="html">&lt;p&gt;新买的WD蓝盘，用了半年左右，Load_Cycle_Count居然达到了8W多。&lt;br /&gt;
+之前希捷的硬盘，设置了APM参数就可以搞定这个问题，不过同样的方法对这WD无效。&lt;br /&gt;
+后来发现，WD官方提供WDIDLE3（纯DOS软件），可以修改硬盘的计时器。&lt;br /&gt;
+将计时器修改为240发现情况好转。&lt;br /&gt;
+不过貌似黑盘和蓝盘的是要区别对待的，&lt;a href="http://dell.benyouhui.it168.com/thread-1238605-1-1.html"&gt;这里是别人的测试&lt;/a&gt;  &lt;/p&gt;</summary><category term="wd"></category><category term="hardisk"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Jul/04/20130704/" rel="alternate"></link><updated>2013-07-04T10:59:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-07-04:posts/2013/Jul/04/20130704/</id><summary type="html">&lt;p&gt;晚上回到赣州，早已物是人非的地方。&lt;br /&gt;
+大四的走了，大一的搬了过来。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Jul/03/20130703/" rel="alternate"></link><updated>2013-07-03T11:02:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-07-03:posts/2013/Jul/03/20130703/</id><summary type="html">&lt;p&gt;各种加班手段，算是完成了那个安卓的多媒体播放器。&lt;br /&gt;
+给各位评审大人演示一下，结束这段实习。&lt;br /&gt;
+晚上大家一起吃自助餐。&lt;br /&gt;
+吃烤肉的后果很严重，脸上又长了许多痘痘。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Jun/23/20130623/" rel="alternate"></link><updated>2013-06-23T20:10:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-06-23:posts/2013/Jun/23/20130623/</id><summary type="html">&lt;p&gt;帮嫂子修电脑。然后，豆子手提要换液晶屏。&lt;br /&gt;
+辗转去了师大，南工。&lt;br /&gt;
+晚上再一饭局。一天就这样过去了。&lt;br /&gt;
+今天看到最漂亮的，应该就是某个学校山寨泰姬陵的建筑。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Jun/23/20130622/" rel="alternate"></link><updated>2013-06-23T09:36:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-06-23:posts/2013/Jun/23/20130622/</id><summary type="html">&lt;p&gt;傍晚辉哥拉我们三个男的(ZW,Mr.Lao and me)去骑车游湖。  &lt;br /&gt;
+双人自行车上两个男的，这个够基情。  &lt;br /&gt;
+辉哥从来不会事先透露他的目的。  &lt;br /&gt;
+事实上，他只是需要我们陪他去找嫂子。  &lt;br /&gt;
+最后嫂子作为东道主，请我们吃了顿大餐。    &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Jun/21/20130616/" rel="alternate"></link><updated>2013-06-21T15:54:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-06-21:posts/2013/Jun/21/20130616/</id><summary type="html">&lt;p&gt;父亲节，动身去南昌，中兴。&lt;br /&gt;
+三个星期的实习。&lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Jun/21/20130621/" rel="alternate"></link><updated>2013-06-21T14:37:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-06-21:posts/2013/Jun/21/20130621/</id><summary type="html">&lt;p&gt;621,这个世界充满毕业的伤感。    &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Jun/01/20130601/" rel="alternate"></link><updated>2013-06-01T22:56:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-06-01:posts/2013/Jun/01/20130601/</id><summary type="html">&lt;p&gt;以后要改口叫JD做嫂子！  &lt;br /&gt;
+XC和JD很低调，祝这两口子百年好合。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/May/29/20130529/" rel="alternate"></link><updated>2013-05-29T23:27:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-05-29:posts/2013/May/29/20130529/</id><summary type="html">&lt;p&gt;辉哥约去游泳。刚好最近天气热，跑步各种不爽。&lt;br /&gt;
+感觉体能恢复的很好，游了一下午，也还挺精神的样子。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/May/28/20130528/" rel="alternate"></link><updated>2013-05-28T15:34:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-05-28:posts/2013/May/28/20130528/</id><summary type="html">&lt;p&gt;长沙之行，忧喜交参。&lt;br /&gt;
+认真总结得失，勤加修炼内功。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/May/14/20130514/" rel="alternate"></link><updated>2013-05-14T21:31:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-05-14:posts/2013/May/14/20130514/</id><summary type="html">&lt;div class="highlight"&gt;&lt;pre&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;YJ生日，在东北菜馆庆祝。  &lt;br /&gt;
+YJ点的菜很合我口味，还是说我也很喜欢东北菜。  &lt;br /&gt;
+没有特能喝酒的大神虐场，今晚算是喝的最舒服的一次了。  &lt;br /&gt;
+接着是ZY入党事情。&lt;br /&gt;
+好巧，上次华哥生日那天，ZW也要办同样的事情。    &lt;/p&gt;</summary><category term="life"></category></entry><entry><title>一个Pygame版坦克大战的诞生(01)</title><link href="http://khalidhsu.github.com/posts/2013/May/14/tank-teach-01/" rel="alternate"></link><updated>2013-05-14T07:43:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-05-14:posts/2013/May/14/tank-teach-01/</id><summary type="html">&lt;p&gt;这个学期软件工程课上要求制作一个游戏，一个经典得不能再经典的游戏--坦克大战。然后还要求写N篇实验报告。&lt;br /&gt;
+说实话，花那么多时间写实验报告，到最后留它在某个角落里发霉，还不如写成教程发布到网上。要是有人能够从中得到一点点帮助，那就是一件有意义的事情。所以就有了这个教程。  &lt;br /&gt;
+这是一个入门教程，希望能给刚学python又想写游戏的人提供一点帮助。大神请直接无视此教程。  &lt;br /&gt;
+关于什么是pygame，在此不再赘述。废话少说，开门见山。    &lt;/p&gt;
+&lt;p&gt;先来个简单的，建立一个窗口：    &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;#!/usr/bin/env python    &lt;/span&gt;
+&lt;span class="c"&gt;#-*-coding:utf-8-*-  &lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;pygame&lt;/span&gt;  
+&lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;init&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;    &lt;span class="c"&gt;#pygame初始化  &lt;/span&gt;
+&lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;700&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;500&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;    &lt;span class="c"&gt;#指定窗口尺寸  &lt;/span&gt;
+&lt;span class="n"&gt;screen&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;display&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_mode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;    &lt;span class="c"&gt;#新建一个窗口  &lt;/span&gt;
+&lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;display&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_caption&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;坦克大战&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;    &lt;span class="c"&gt;#设置窗口标题  &lt;/span&gt;
+&lt;span class="n"&gt;done&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;  
+&lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="n"&gt;done&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;  
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;event&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;event&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;   
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;event&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;QUIT&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;   
+            &lt;span class="n"&gt;done&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="bp"&gt;True&lt;/span&gt;   
+    &lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;display&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;flip&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="c"&gt;#刷新屏幕  &lt;/span&gt;
+&lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;quit&lt;/span&gt; &lt;span class="p"&gt;()&lt;/span&gt;  
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;前面几句是常规初始化用的。而对于后面的循环，则是从pygame的事件列表(event queue)中取出事件，判断事件类型并做相应操作。  &lt;/p&gt;
+&lt;p&gt;什么是事件？例如你移动了鼠标，按下了键盘按键，甚至松开了键盘按键等，这些都是事件。&lt;br /&gt;
+而事件则有其相应的类型，例如按下按键，则是pygame.KEYDOWN，释放按键，则是pygame.KEYUP。&lt;br /&gt;
+pygame将一大堆发生了的事件储存起来，使用pygame.event.get()方法能获取到这些事件，然后你就可以做相应的处理。&lt;br /&gt;
+所以以上这个循环的作用是判断获取的事件是否为pygame.QUIT，是则设置done为True，结束循环。  &lt;/p&gt;
+&lt;p&gt;你可以试试把done=True这句改成pass（即什么也不干），当你再点击窗口的关闭按钮时候，你会发现窗口无法关闭了~~哈哈&lt;br /&gt;
+知道怎么关闭不？windows用户请按Ctrl-Alt-Delete呼出任务管理器，找到那个python的进程并干掉，linux用户也可以用System Monitor之类的软件来搞定，不过我更喜欢打命令:  &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;ps -ef|grep python   &lt;span class="c"&gt;#找到进程的PID  &lt;/span&gt;
+&lt;span class="nb"&gt;kill&lt;/span&gt; -s 9 PID     &lt;span class="c"&gt;#干掉它,PID换成上面得到的数字号  &lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;再干点别的吧，画个红色的圆。&lt;br /&gt;
+红色怎样表示：&lt;br /&gt;
+red =   [255,  0,  0]&lt;br /&gt;
+这是RGB表示法嘛，R为255，G为0，B也为0。（注意数字的范围是0~255）&lt;br /&gt;
+色光的三原色是RGB，如今G和B都为0，只有R，还是所以就是红色咯~~还是正红呢！  &lt;/p&gt;
+&lt;p&gt;那怎么画圆：&lt;br /&gt;
+pygame.draw.circle(screen,red,[200,200],50)&lt;br /&gt;
+pygame.draw.circle是画圆的函数，你可以到 &lt;a href="http://www.pygame.org/docs/ref/draw.html"&gt;这里&lt;/a&gt; 看到pygame.draw支持画的各种图形和相应的参数 。&lt;br /&gt;
+这个screen就是刚刚新建的窗口，也就是说，在这个窗口中画。当然你也可以画在别的看不见的地方，例如内存中“画布”，这个后面再说吧。&lt;br /&gt;
+red就是上面定义的红色&lt;br /&gt;
+[200,200]是圆的坐标，50则是半径  &lt;/p&gt;
+&lt;p&gt;所以增加两行代码，长这样了：  &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;#!/usr/bin/env python    &lt;/span&gt;
+&lt;span class="c"&gt;#-*-coding:utf-8-*-  &lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;pygame&lt;/span&gt;  
+&lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;init&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;    &lt;span class="c"&gt;#pygame初始化  &lt;/span&gt;
+&lt;span class="n"&gt;red&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;   &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;255&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;  
+&lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;700&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;500&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;    &lt;span class="c"&gt;#指定窗口尺寸  &lt;/span&gt;
+&lt;span class="n"&gt;screen&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;display&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_mode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;    &lt;span class="c"&gt;#新建一个窗口  &lt;/span&gt;
+&lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;display&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_caption&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;坦克大战&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;    &lt;span class="c"&gt;#设置窗口标题  &lt;/span&gt;
+&lt;span class="n"&gt;done&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;  
+&lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="n"&gt;done&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;  
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;event&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;event&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;   
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;event&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;QUIT&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;   
+            &lt;span class="n"&gt;done&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="bp"&gt;True&lt;/span&gt;  
+    &lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;draw&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;circle&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;screen&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;red&lt;/span&gt;&lt;span class="p"&gt;,[&lt;/span&gt;&lt;span class="mi"&gt;200&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;200&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;&lt;span class="mi"&gt;50&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;  
+    &lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;display&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;flip&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="c"&gt;#刷新屏幕  &lt;/span&gt;
+&lt;span class="n"&gt;pygame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;quit&lt;/span&gt; &lt;span class="p"&gt;()&lt;/span&gt;  
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;运行看看你的红色的圆出来没？    &lt;/p&gt;
+&lt;p&gt;(本文涉及的代码已经上传到&lt;a href="https://github.com/khalidhsu/TankWar"&gt;Github中&lt;/a&gt;)   &lt;/p&gt;</summary><category term="python"></category><category term="pygame"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/May/12/20130512/" rel="alternate"></link><updated>2013-05-12T23:33:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-05-12:posts/2013/May/12/20130512/</id><summary type="html">&lt;p&gt;母亲节，没什么能表示的，除了打电话问候。&lt;br /&gt;
+今天也是汶川地震五周年。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/May/07/20130507/" rel="alternate"></link><updated>2013-05-07T15:11:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-05-07:posts/2013/May/07/20130507/</id><summary type="html">&lt;p&gt;三月二十八，奶奶生日。  &lt;br /&gt;
+爷爷说要提前在周日庆祝，因为儿孙们才有空。  &lt;br /&gt;
+但我还是没能回去。  &lt;br /&gt;
+回去见一下亲人，变成很遥远的事情。  &lt;br /&gt;
+奶奶说，一年才见我一次。这句话真的很沉重。    &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/May/01/20130501/" rel="alternate"></link><updated>2013-05-01T14:19:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-05-01:posts/2013/May/01/20130501/</id><summary type="html">&lt;p&gt;五一，放一天的假。没有任何放假的感觉。&lt;br /&gt;
+天气很阴沉，压抑。焦虑的感觉比平常更加严重。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Apr/28/20130428/" rel="alternate"></link><updated>2013-04-28T22:52:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-04-28:posts/2013/Apr/28/20130428/</id><summary type="html">&lt;p&gt;2013-04-28。&lt;br /&gt;
+Marked.  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Apr/20/20130420/" rel="alternate"></link><updated>2013-04-20T21:01:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-04-20:posts/2013/Apr/20/20130420/</id><summary type="html">&lt;p&gt;（2013-04-20）&lt;br /&gt;
+雅安地震。7.0级。&lt;br /&gt;
+遇难约2百人。受灾超过两百万人。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Apr/18/20130418/" rel="alternate"></link><updated>2013-04-18T17:04:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-04-18:posts/2013/Apr/18/20130418/</id><summary type="html">&lt;p&gt;XC车祸后续的事，终于签好了协议。&lt;br /&gt;
+今天很累。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Apr/17/20130417/" rel="alternate"></link><updated>2013-04-17T17:21:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-04-17:posts/2013/Apr/17/20130417/</id><summary type="html">&lt;p&gt;下午和XC一起去交警局，办理车祸后续的事。    &lt;br /&gt;
+结果被放鸽子了。    &lt;br /&gt;
+JD和XC今天也不知道怎么了，突然闹别扭。    &lt;br /&gt;
+晚上再问情况，说没事了。      &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Apr/10/20130410/" rel="alternate"></link><updated>2013-04-10T22:02:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-04-10:posts/2013/Apr/10/20130410/</id><summary type="html">&lt;p&gt;XC车祸了。&lt;br /&gt;
+我很惊讶，昨晚还好好的。&lt;br /&gt;
+人生总有那么多突如其来的变故。&lt;br /&gt;
+问清楚情况，他说不是很严重。&lt;br /&gt;
+后来XC说打完针好痛，希望我载他。&lt;br /&gt;
+我也没心情上课了。&lt;br /&gt;
+向CYJ借了辆摩托，把XC从附属医院载回来。&lt;br /&gt;
+XC车祸的事很麻烦，肇事者是社会上的流氓，居然想敲诈。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Apr/07/20130407/" rel="alternate"></link><updated>2013-04-07T21:57:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-04-07:posts/2013/Apr/07/20130407/</id><summary type="html">&lt;p&gt;今天请小忠哥吃晚餐。&lt;br /&gt;
+没别的意思，只是因为我说过要请他吃饭。&lt;br /&gt;
+后来把他整个寝室的人都叫上了。&lt;br /&gt;
+南方菜馆的红烧鱼很不错。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Apr/05/20130405/" rel="alternate"></link><updated>2013-04-05T21:41:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-04-05:posts/2013/Apr/05/20130405/</id><summary type="html">&lt;p&gt;今天认识了XC，JD，LF，WY。&lt;br /&gt;
+看得出XC今天能当老板，并非偶然因素。他有种独特的亲和力。&lt;br /&gt;
+JD是一思想成熟的女性，善于与人交往。&lt;br /&gt;
+LF很踏实。&lt;br /&gt;
+WY则像个“技术宅”。当然，宅不宅就不是很清楚，反正技术一流。&lt;br /&gt;
+今天很高兴，认识这么几位朋友。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Mar/31/20130331/" rel="alternate"></link><updated>2013-03-31T21:35:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-03-31:posts/2013/Mar/31/20130331/</id><summary type="html">&lt;p&gt;今天（2013.3.31）我联系到了MYM，她的变化令我惊讶。&lt;br /&gt;
+她报学了计算机方面的专业。&lt;br /&gt;
+对人生她也有了自己的看法。老了？  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Mar/29/20130329/" rel="alternate"></link><updated>2013-03-29T21:19:00+01:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-03-29:posts/2013/Mar/29/20130329/</id><summary type="html">&lt;p&gt;今天（2013.3.29)7爷突然联系我，说要搞好他的网站。&lt;br /&gt;
+好久没跟7爷联系，从他的语气中还能感受到从前那种暴躁的感觉。&lt;br /&gt;
+也许需要更多的时间，7爷才会变得冷静。也许永远不会。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Feb/11/20130211/" rel="alternate"></link><updated>2013-02-11T19:45:00+01:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-02-11:posts/2013/Feb/11/20130211/</id><summary type="html">&lt;p&gt;每年的大年初二，都是爷爷的生日。&lt;br /&gt;
+亲戚都在这个时候聚在一起。&lt;br /&gt;
+去老家的时候，路上意外地塞了半小时车。&lt;br /&gt;
+二姐还带了未来的二姐夫去。&lt;br /&gt;
+后来还发现，二姐的小学同学，成了我们的亲戚。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Feb/10/20130210/" rel="alternate"></link><updated>2013-02-10T19:07:00+01:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-02-10:posts/2013/Feb/10/20130210/</id><summary type="html">&lt;p&gt;大年初一的，把点点博客的文章迁移到github上。&lt;br /&gt;
+当然，本来就没几篇文章，也就没什么工作量。&lt;br /&gt;
+有人说，用github做博客，不是Geek，而是寂寞。&lt;br /&gt;
+好吧，寂寞的人，自觉对号入座。&lt;br /&gt;
+新家在&lt;a href="http://khalidhsu.github.com"&gt;这里&lt;/a&gt;  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Feb/06/20130206/" rel="alternate"></link><updated>2013-02-06T01:26:00+01:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-02-06:posts/2013/Feb/06/20130206/</id><summary type="html">&lt;p&gt;放假，回家两周。&lt;br /&gt;
+还是有那么多的事，还是有那么忙。   &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Jan/06/20130106/" rel="alternate"></link><updated>2013-01-06T01:26:00+01:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-01-06:posts/2013/Jan/06/20130106/</id><summary type="html">&lt;p&gt;今天是辉哥生日，昨晚搞的庆祝。  &lt;br /&gt;
+还叫班上的女生来包饺子。  &lt;br /&gt;
+饺子不错但是，貌似忘了放盐。还好有一瓶酱油。  &lt;br /&gt;
+在吃完饭再吃撑饺子和其他小吃的情况下，还要被各位爷坑酒。  &lt;br /&gt;
+幸亏没倒下但胃胀的难受，让我辗转反侧彻夜无眠。  &lt;br /&gt;
+当然，后来还认识了辉哥老乡，同样很喜欢编程的学弟。    &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2012/Dec/19/20121229/" rel="alternate"></link><updated>2012-12-19T01:25:00+01:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2012-12-19:posts/2012/Dec/19/20121229/</id><summary type="html">&lt;p&gt;2012，传说的末日没有如期到来，到来的只是不变的考试。  &lt;br /&gt;
+一周的考试，足以让人窒息。  &lt;br /&gt;
+我会铭记这段历史，坐在冰冷的教室，忍着被雨水打湿的鞋子，甚至双腿失去知觉，还是在反复看着所谓的重点。  &lt;br /&gt;
+当所有考试结束，太阳照常升起。被打乱的节奏，恢复到从前。    &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2012/Dec/16/20121216/" rel="alternate"></link><updated>2012-12-16T01:24:00+01:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2012-12-16:posts/2012/Dec/16/20121216/</id><summary type="html">&lt;p&gt;今晚建明请客，说是感谢我们。&lt;br /&gt;
+还是像上次那样去吃火锅。&lt;br /&gt;
+然后我吃撑了。&lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2012/Dec/08/20121208/" rel="alternate"></link><updated>2012-12-08T01:23:00+01:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2012-12-08:posts/2012/Dec/08/20121208/</id><summary type="html">&lt;p&gt;这个学期第一次上自习。   &lt;br /&gt;
+整整一天。只是为了明天一门极其无聊的考试。   &lt;br /&gt;
+发现好久没有上自习。仿佛回到了高中那种刻苦，那种宁静。&lt;br /&gt;
+想来大学两年多，基本是教室上课，图书馆找书，机房敲代码，寝室睡觉。&lt;br /&gt;
+以后要多点上自习。我喜欢这种的宁静。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2012/Nov/23/20121123/" rel="alternate"></link><updated>2012-11-23T01:21:00+01:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2012-11-23:posts/2012/Nov/23/20121123/</id><summary type="html">&lt;p&gt;华哥生日。   &lt;br /&gt;
+我被灌了人生的第一杯白酒。    &lt;br /&gt;
+中途我们几个离开一下，主要是ZW入党的事。&lt;br /&gt;
+回来华哥已经倒下了。&lt;br /&gt;
+后来是五六个人才把华哥抬回去。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title>ASUS SL101获取root权限 (ver9.2.1.27) 模糊记录</title><link href="http://khalidhsu.github.com/posts/2012/Nov/17/asus-sl101-get-root/" rel="alternate"></link><updated>2012-11-17T01:27:00+01:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2012-11-17:posts/2012/Nov/17/asus-sl101-get-root/</id><summary type="html">&lt;p&gt;asus sl101到手了，感谢二姐送我的光棍节礼物^_^。&lt;br /&gt;
+我尝试着获取root权限，不过试过国内各种“一键root神器”后，我彻底失望了。&lt;br /&gt;
+后来在xda上找到了Oneclickrecovery，让我破碎的又心重新粘了起来。  &lt;/p&gt;
+&lt;p&gt;发现国内关于sl101获取root的资料比较少，而且国内的各种傻瓜式的一键root神器也暂不支持我的这款平板。&lt;br /&gt;
+所有就有了我这篇毫无技术含量的文章，希望能给其他希望获取root权限又怕平板变成砖的机油增加自信。&lt;br /&gt;
+本文是我昨晚获取了root权限后，睡了一觉再根据回忆写的，难免有疏漏和错误，还请读者指正。&lt;br /&gt;
+我也不打算写的很详细和啰嗦，因为程序里有非常详细的提示。&lt;br /&gt;
+先说一下，我的平板固件号是9.2.1.27，如果你的版本号不同的话，可能不适合，请三思而后行。&lt;br /&gt;
+xda上原帖网址：http://forum.xda-developers.com/showthread.php?t=1681155&lt;br /&gt;
+上面有很多版本和下载链接，我下的是V0.4的。&lt;br /&gt;
+我的操作环境是winxp的，XP要自己安装驱动，win7的话，上述程序可以自动安装的。  &lt;/p&gt;
+&lt;p&gt;好了，下载并解压好上面那个Oneclickrecovery，也安装好usb驱动后，用usb调试方式连接平板到电脑上。&lt;br /&gt;
+打开cmd，切换到Oneclickrecovery的解压目录，执行那个EasyRecoveryV0.4.bat，他就会问你一大窜问题，这些问题都比较傻瓜，我记得一般是输入Y。（对安装驱动那步，因为我已经手动安装好了，输入N就可以了），貌似这个过程重启了两次平板。&lt;br /&gt;
+当提示 This.. is ALMOST DONEEEE!的时候，才到了关键的步骤，前面只是传输文件到平板上。&lt;br /&gt;
+好吧，接下来是拿起平板了。&lt;br /&gt;
+然后我犯二了，直接重启了。不过没关系，自己手动来：关机，然后按着”音量减“ 和”开机键“ 来开机，你就会发现屏幕左上右英文提示，再按”音量增“，你就进去了一个特别的界面，就像grub开机进行选择一样。&lt;br /&gt;
+后面的步骤和电脑上那个程序的提示差不多的，但我记得菜单的名字貌似是有少许差别的。&lt;br /&gt;
+步骤大概就是&lt;br /&gt;
+选择 'wipe' 然后选择 'wipe cache'&lt;br /&gt;
+接着选择 'wipe dalvik-cache'&lt;br /&gt;
+返回那个主菜单，选择 install.&lt;br /&gt;
+然后选择 install from internal.&lt;br /&gt;
+接下来选择Superuser-3.0.7-efghi-signed.zip这个文件。（前面已经自动复制到你平板上了，应该在文件列表的最后）&lt;br /&gt;
+然后就是选择 yes.那就成功了，然后是重启，要等好久，特别是提示更新软件什么的，开机进去以后，你就自由了^_^  &lt;/p&gt;
+&lt;p&gt;最后强调一下，本文仅是我的经验分享，&lt;br /&gt;
+&lt;em&gt;上述操作是有一定风险的。如果哪位读者因看了本文而制造出事故，请自行负责。&lt;/em&gt;&lt;br /&gt;
+而且本文是我一觉醒来以后再根据回忆写的，错误在所难免，也希望读者指正。    &lt;/p&gt;</summary><category term="android"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2012/Oct/20/20121020/" rel="alternate"></link><updated>2012-10-20T01:19:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2012-10-20:posts/2012/Oct/20/20121020/</id><summary type="html">&lt;p&gt;被欧阳拉去监考OI。  &lt;br /&gt;
+我只想说，监考的感觉很爽。&lt;br /&gt;
+那些会编程的小朋友也特有爱。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title>用emacs写点点博客(续)</title><link href="http://khalidhsu.github.com/posts/2012/Oct/19/ddemacs2/" rel="alternate"></link><updated>2012-10-19T00:21:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2012-10-19:posts/2012/Oct/19/ddemacs2/</id><summary type="html">&lt;p&gt;终于做完了多到变态又毫无意义的数据库作业。&lt;br /&gt;
+好了，贴些代码，忘记所有的不快。&lt;br /&gt;
+上次我用emacs写点点博客时候用两个bash脚本，然后干脆修改一下，合并成一个，代码如下&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;#!/bin/bash&lt;/span&gt;
+&lt;span class="nv"&gt;self&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;$0&amp;quot;&lt;/span&gt;
+&lt;span class="nb"&gt;pushd&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;$(dirname -- $self)&amp;quot;&lt;/span&gt;&amp;gt;/dev/null
+
+ddlog&lt;span class="o"&gt;()&lt;/span&gt;
+&lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="c"&gt;#username pwds out_cookie_file&lt;/span&gt;
+    curl -c &lt;span class="nv"&gt;$3&lt;/span&gt; http://www.diandian.com/login -d &lt;span class="s2"&gt;&amp;quot;account=$1&amp;amp;password=$2&amp;amp;persistent=1&amp;quot;&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+
+ddgetfrmkey&lt;span class="o"&gt;()&lt;/span&gt;
+&lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="c"&gt;#cookiefile bgaddr out_put_ddfrmkey&lt;/span&gt;
+    curl http://www.diandian.com/dianlog/&lt;span class="nv"&gt;$2&lt;/span&gt;/new/text  -b &lt;span class="nv"&gt;$1&lt;/span&gt; |grep DDformKey|cut -d&lt;span class="s2"&gt;&amp;quot;&amp;#39;&amp;quot;&lt;/span&gt; -f 2 &amp;gt;&lt;span class="nv"&gt;$3&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+
+ddpost&lt;span class="o"&gt;()&lt;/span&gt;
+&lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="c"&gt;#cookiefile bgaddr ddfrmkey  postfile&lt;/span&gt;
+    &lt;span class="nv"&gt;cookiefile&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$1&lt;/span&gt;;  &lt;span class="nv"&gt;bgaddr&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$2&lt;/span&gt;; &lt;span class="nv"&gt;ddfrmkey&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$3&lt;/span&gt;; &lt;span class="nv"&gt;postfile&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$4&lt;/span&gt;
+    &lt;span class="nv"&gt;ddcfg&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;$postfile.dd&amp;quot;&lt;/span&gt;
+    &lt;span class="nv"&gt;tags&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt;cat &lt;span class="nv"&gt;$ddcfg&lt;/span&gt;|grep -v &lt;span class="se"&gt;\#&lt;/span&gt;|grep tags&lt;span class="sb"&gt;`&lt;/span&gt; &lt;span class="c"&gt;#has = !&lt;/span&gt;
+    &lt;span class="nv"&gt;uri&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt;cat &lt;span class="nv"&gt;$ddcfg&lt;/span&gt;|grep -v &lt;span class="se"&gt;\#&lt;/span&gt;|grep uri&lt;span class="sb"&gt;`&lt;/span&gt; &lt;span class="c"&gt;# has = !&lt;/span&gt;
+    &lt;span class="nv"&gt;formKey&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt;cat &lt;span class="nv"&gt;$ddfrmkey&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt;
+    &lt;span class="nv"&gt;markdownbody&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;python -c &lt;span class="s2"&gt;&amp;quot;import urllib; print urllib.quote(open(&amp;#39;$postfile&amp;#39;).read())&amp;quot;&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;
+    curl -b &lt;span class="nv"&gt;$cookiefile&lt;/span&gt;  http://www.diandian.com/dianlog/&lt;span class="nv"&gt;$bgaddr&lt;/span&gt;/new/text -d &lt;span class="s2"&gt;&amp;quot;formKey=$formKey&amp;amp;title=&amp;amp;markdownContent=$markdownbody&amp;amp;$uri&amp;amp;$tags&amp;amp;privacy=0&amp;amp;setTop=false&amp;amp;creativeCommonsEnable=true&amp;amp;creativeCommonsType=by_nc_sa&amp;amp;syncToWeibo=false&amp;amp;syncToQqWeibo=false&amp;amp;syncToDouban=false&amp;amp;syncToQzone=false&amp;amp;syncToRenren=false&amp;amp;syncToFacebook=false&amp;amp;syncToTwitter=false&amp;amp;syncToFlickr=false&amp;quot;&lt;/span&gt;
+
+&lt;span class="o"&gt;}&lt;/span&gt;
+
+&lt;span class="k"&gt;function &lt;/span&gt;showerr&lt;span class="o"&gt;()&lt;/span&gt;
+&lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nb"&gt;echo &lt;/span&gt;err!
+&lt;span class="o"&gt;}&lt;/span&gt;
+
+&lt;span class="k"&gt;case&lt;/span&gt; &lt;span class="nv"&gt;$1&lt;/span&gt; in  
+    -l | --log-in&lt;span class="o"&gt;)&lt;/span&gt;  
+        ddlog &lt;span class="nv"&gt;$2&lt;/span&gt; &lt;span class="nv"&gt;$3&lt;/span&gt; &lt;span class="nv"&gt;$4&lt;/span&gt;
+        ;;  
+    -g | --get-fk&lt;span class="o"&gt;)&lt;/span&gt;  
+        ddgetfrmkey &lt;span class="nv"&gt;$2&lt;/span&gt; &lt;span class="nv"&gt;$3&lt;/span&gt; &lt;span class="nv"&gt;$4&lt;/span&gt;
+        ;;
+    -p | --post&lt;span class="o"&gt;)&lt;/span&gt;  
+        ddpost &lt;span class="nv"&gt;$2&lt;/span&gt; &lt;span class="nv"&gt;$3&lt;/span&gt; &lt;span class="nv"&gt;$4&lt;/span&gt; &lt;span class="nv"&gt;$5&lt;/span&gt;
+        ;; 
+    *&lt;span class="o"&gt;)&lt;/span&gt;  
+        showerr
+        ;;  
+&lt;span class="k"&gt;esac&lt;/span&gt;  
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;再贴一段调用该bash脚本的elisp，代码如下&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c1"&gt;;;ddemacs&lt;/span&gt;
+&lt;span class="c1"&gt;;;by Khalid Hsu&lt;/span&gt;
+&lt;span class="c1"&gt;;;2012.10.17&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defvar&lt;/span&gt; &lt;span class="nv"&gt;dd-sh&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;~/bash/dd-foo.sh&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="c1"&gt;;;path of the bash script&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defvar&lt;/span&gt; &lt;span class="nv"&gt;dd-dir&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;~/.diandian&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="c1"&gt;;;dir for saving cookie and formkey&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defvar&lt;/span&gt; &lt;span class="nv"&gt;dd-acc&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;khalidhsu@gmail.com&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defvar&lt;/span&gt; &lt;span class="nv"&gt;dd-pwd&lt;/span&gt; &lt;span class="no"&gt;nil&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="c1"&gt;;;just leave it nil&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defvar&lt;/span&gt; &lt;span class="nv"&gt;dd-blog-addrs&lt;/span&gt; &lt;span class="o"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;khalidhsu&amp;quot;&lt;/span&gt;  &lt;span class="s"&gt;&amp;quot;anotherblog&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defvar&lt;/span&gt; &lt;span class="nv"&gt;dd-cfg-ext&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;.dd&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defvar&lt;/span&gt; &lt;span class="nv"&gt;dd-cookie-file&lt;/span&gt; &lt;span class="no"&gt;nil&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="c1"&gt;;;just leave it nil&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defun&lt;/span&gt; &lt;span class="nv"&gt;dd-select-blog&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;blog-list&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="s"&gt;&amp;quot;Before U post.&amp;quot;&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;let&lt;/span&gt; &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="nv"&gt;blog-list-in-list&lt;/span&gt;
+         &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;mapcon&lt;/span&gt; &lt;span class="ss"&gt;&amp;#39;list&lt;/span&gt; &lt;span class="nv"&gt;blog-list&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+        &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;ret&lt;/span&gt; &lt;span class="no"&gt;nil&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+    &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;while&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;or&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;not&lt;/span&gt; &lt;span class="nv"&gt;ret&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+               &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;length&lt;/span&gt; &lt;span class="nv"&gt;ret&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+      &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;setq&lt;/span&gt; &lt;span class="nv"&gt;ret&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;completing-read&lt;/span&gt;
+                 &lt;span class="s"&gt;&amp;quot;Select a blog:&amp;quot;&lt;/span&gt;
+                 &lt;span class="nv"&gt;blog-list-in-list&lt;/span&gt; &lt;span class="no"&gt;nil&lt;/span&gt; &lt;span class="no"&gt;t&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;car&lt;/span&gt; &lt;span class="nv"&gt;blog-list&lt;/span&gt;&lt;span class="p"&gt;))))&lt;/span&gt;
+    &lt;span class="nv"&gt;ret&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defun&lt;/span&gt; &lt;span class="nv"&gt;dd-check-dir&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="s"&gt;&amp;quot;Before U login&amp;quot;&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;not&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;file-readable-p&lt;/span&gt;
+            &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;directory-file-name&lt;/span&gt; &lt;span class="nv"&gt;dd-dir&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+      &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;make-directory&lt;/span&gt; &lt;span class="nv"&gt;dd-dir&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defun&lt;/span&gt; &lt;span class="nv"&gt;dd-save-cookie&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="c1"&gt;;;#username pwds out_cookie_file&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;shell-command&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;format&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;bash %s -l %s %s %s&amp;quot;&lt;/span&gt; &lt;span class="nv"&gt;dd-sh&lt;/span&gt;
+                         &lt;span class="nv"&gt;dd-acc&lt;/span&gt; &lt;span class="nv"&gt;dd-pwd&lt;/span&gt; &lt;span class="nv"&gt;dd-cookie-file&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defun&lt;/span&gt; &lt;span class="nv"&gt;dd-save-formkey&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="c1"&gt;;;#cookiefile bgaddr out_put_ddfrmkey&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;mapc&lt;/span&gt; &lt;span class="o"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;lambda&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;x&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+           &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;shell-command&lt;/span&gt;
+            &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;format&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;bash %s -g %s %s %s&amp;quot;&lt;/span&gt; &lt;span class="nv"&gt;dd-sh&lt;/span&gt;
+                    &lt;span class="nv"&gt;dd-cookie-file&lt;/span&gt; &lt;span class="nv"&gt;x&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;expand-file-name&lt;/span&gt;
+                                      &lt;span class="nv"&gt;x&lt;/span&gt; &lt;span class="nv"&gt;dd-dir&lt;/span&gt;&lt;span class="p"&gt;))))&lt;/span&gt;
+        &lt;span class="nv"&gt;dd-blog-addrs&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defun&lt;/span&gt; &lt;span class="nv"&gt;dd-login&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;interactive&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;dd-init&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;dd-check-dir&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;setq&lt;/span&gt; &lt;span class="nv"&gt;dd-pwd&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;read-passwd&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Password:&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;dd-save-cookie&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;dd-save-formkey&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;message&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Done.&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defun&lt;/span&gt; &lt;span class="nv"&gt;dd-post&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="s"&gt;&amp;quot;To post the dd article.&amp;quot;&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;interactive&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;dd-init&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;save-buffer&lt;/span&gt; &lt;span class="no"&gt;t&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;let&lt;/span&gt; &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="nv"&gt;ddbuf&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;buffer-file-name&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;current-buffer&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+        &lt;span class="nv"&gt;target-bg&lt;/span&gt;
+        &lt;span class="nv"&gt;target-bg-frmk&lt;/span&gt;
+        &lt;span class="nv"&gt;ddcfgf&lt;/span&gt; &lt;span class="c1"&gt;;;.dd&lt;/span&gt;
+        &lt;span class="nv"&gt;post-cmd&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt;  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;string-suffix-p&lt;/span&gt;  &lt;span class="nv"&gt;dd-cfg-ext&lt;/span&gt; &lt;span class="nv"&gt;ddbuf&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;setq&lt;/span&gt; &lt;span class="nv"&gt;ddbuf&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;substring&lt;/span&gt; &lt;span class="nv"&gt;ddbuf&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="mi"&gt;-3&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;&lt;span class="c1"&gt;;;in case the user got it wrong&lt;/span&gt;
+    &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;setq&lt;/span&gt; &lt;span class="nv"&gt;ddcfgf&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;concat&lt;/span&gt; &lt;span class="nv"&gt;ddbuf&lt;/span&gt; &lt;span class="nv"&gt;dd-cfg-ext&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+    &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;not&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;file-readable-p&lt;/span&gt; &lt;span class="nv"&gt;ddcfgf&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;progn&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;dd-cfg&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+               &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;message&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Finish the dd cfg first!&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+      &lt;span class="c1"&gt;;;else part: all-fine&lt;/span&gt;
+      &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;setq&lt;/span&gt; &lt;span class="nv"&gt;target-bg&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;dd-select-blog&lt;/span&gt; &lt;span class="nv"&gt;dd-blog-addrs&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+      &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;setq&lt;/span&gt; &lt;span class="nv"&gt;target-bg-frmk&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;expand-file-name&lt;/span&gt; &lt;span class="nv"&gt;target-bg&lt;/span&gt; &lt;span class="nv"&gt;dd-dir&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+      &lt;span class="c1"&gt;;;#cookiefile bgaddr ddfrmkey  postfile&lt;/span&gt;
+      &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;setq&lt;/span&gt; &lt;span class="nv"&gt;post-cmd&lt;/span&gt;
+            &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;format&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;bash %s -p %s %s %s %s&amp;quot;&lt;/span&gt; &lt;span class="nv"&gt;dd-sh&lt;/span&gt;
+                    &lt;span class="nv"&gt;dd-cookie-file&lt;/span&gt;  &lt;span class="nv"&gt;target-bg&lt;/span&gt; &lt;span class="nv"&gt;target-bg-frmk&lt;/span&gt; &lt;span class="nv"&gt;ddbuf&lt;/span&gt; &lt;span class="p"&gt;))&lt;/span&gt;
+      &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;m-eshell&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+      &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;insert&lt;/span&gt; &lt;span class="nv"&gt;post-cmd&lt;/span&gt;&lt;span class="p"&gt;))))&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defun&lt;/span&gt; &lt;span class="nv"&gt;dd-cfg&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="s"&gt;&amp;quot;To write the dd cfg file.&amp;quot;&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;interactive&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;save-buffer&lt;/span&gt; &lt;span class="no"&gt;t&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;let&lt;/span&gt; &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="nv"&gt;postname&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;i-get-buf-base-name&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;current-buffer&lt;/span&gt;&lt;span class="p"&gt;))))&lt;/span&gt;
+    &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;find-file&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;concat&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;buffer-file-name&lt;/span&gt;
+                        &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;current-buffer&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="nv"&gt;dd-cfg-ext&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+    &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;&amp;gt;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;+&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;point-min&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;point-max&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+        &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;progn&lt;/span&gt;
+          &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;delete-region&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;point-min&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;point-max&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+          &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;insert&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;[ddcfg]\n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+          &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;insert&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;tags=\n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+          &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;insert&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;concat&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;#uri=post%2F&amp;quot;&lt;/span&gt;
+                          &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;format-time-string&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;%Y-%m-%d&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+                          &lt;span class="s"&gt;&amp;quot;%2F&amp;quot;&lt;/span&gt; &lt;span class="nv"&gt;postname&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;\n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+          &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;save-buffer&lt;/span&gt; &lt;span class="no"&gt;t&lt;/span&gt;&lt;span class="p"&gt;)))))&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;defun&lt;/span&gt; &lt;span class="nv"&gt;dd-init&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+  &lt;span class="s"&gt;&amp;quot;Exec-ed by the func of &amp;#39;login&amp;#39; and &amp;#39;post&amp;#39;.&amp;quot;&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;interactive&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;setq&lt;/span&gt; &lt;span class="nv"&gt;dd-cookie-file&lt;/span&gt;
+        &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;expand-file-name&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;ddcookie&amp;quot;&lt;/span&gt;
+                          &lt;span class="nv"&gt;dd-dir&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;defalias&lt;/span&gt; &lt;span class="ss"&gt;&amp;#39;ddp&lt;/span&gt; &lt;span class="ss"&gt;&amp;#39;dd-post&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;defalias&lt;/span&gt; &lt;span class="ss"&gt;&amp;#39;ddc&lt;/span&gt; &lt;span class="ss"&gt;&amp;#39;dd-cfg&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;defalias&lt;/span&gt; &lt;span class="ss"&gt;&amp;#39;ddl&lt;/span&gt; &lt;span class="ss"&gt;&amp;#39;dd-login&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;provide&lt;/span&gt; &lt;span class="ss"&gt;&amp;#39;dd-emacs&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;关键的是bash代码，而elisp写了这么多，只是为了我自己用起来更舒服。
+这里比较特别的地方是，由于我喜欢给文章加上标签和发布链接等信息，而又不想污染markdown文档，所以，对于每篇要发表的文章X，我都用额外的一个文件X.dd来记录附加信息。
+该文件格式如。&lt;/p&gt;
+&lt;pre config="brush:mybox;toolbar:false;"&gt;
+[ddcfg]
+tags=emacs,diandian,折腾
+#uri=post%2F2012-10-17%2Fddemacs2
+&lt;/pre&gt;
+
+&lt;p&gt;tags是要加入的标签，uri是自定义发布的链接，加了#号在前就是注释掉。
+所以每次发布文章前，执行&lt;/p&gt;
+&lt;pre config="brush:mybox;toolbar:false;"&gt;
+M－x ddc RET  
+&lt;/pre&gt;
+
+&lt;p&gt;来填写附加的信息。然后&lt;/p&gt;
+&lt;pre config="brush:mybox;toolbar:false;"&gt;
+M－x ddp RET
+&lt;/pre&gt;
+
+&lt;p&gt;就发布到博客中。
+当然，如果是第一次使用或者是cookie失效了，就先&lt;/p&gt;
+&lt;pre config="brush:mybox;toolbar:false;"&gt;
+M－x ddl RET
+&lt;/pre&gt;
+
+&lt;p&gt;来获取cookie和formkey等。&lt;/p&gt;</summary><category term="emacs"></category><category term="diandian"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2012/Oct/14/20121014/" rel="alternate"></link><updated>2012-10-14T01:14:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2012-10-14:posts/2012/Oct/14/20121014/</id><summary type="html">&lt;p&gt;大四的学长们都在找工作。&lt;br /&gt;
+明年就到我了。&lt;br /&gt;
+我不想考研。不想浪费这么多的时间，只是为了一场无聊的考试。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title>用emacs写点点博客</title><link href="http://khalidhsu.github.com/posts/2012/Oct/14/ddemacs/" rel="alternate"></link><updated>2012-10-14T00:00:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2012-10-14:posts/2012/Oct/14/ddemacs/</id><summary type="html">&lt;p&gt;用emacs写点点博客
+发现点点还是挺不错的，清新无广告，还支持高度的自定义。不过话说回来，在网页上那个小小的文本窗口写blog绝非一件很cool的事，特别是对于emacser。 &lt;br /&gt;
+如果要用emacs写blog的话，可以通过邮件发送的方式。但我发现用邮件发布的话，如果你要加入标签，标签还是会存在于文本的正文中。（不知道点点的攻城狮现在有没有改进）   &lt;br /&gt;
+当然，我喜欢另外一种办法，那就是通过模拟http请求来写blog。  &lt;/p&gt;
+&lt;p&gt;用firebug监视一下点点发布文章的HTTP请求，可以发现，发布文章的post请求大致为&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="s2"&gt;&amp;quot;formKey=$formKey&amp;amp;title=&amp;amp;markdownContent=$markdownbody&amp;amp;$uri&amp;amp;$tags&amp;amp;privacy=0&amp;amp;setTop=false&amp;amp;creativeCommonsEnable=false&amp;amp;creativeCommonsType=by_nc_sa&amp;amp;syncToWeibo=false&amp;amp;syncToQqWeibo=false&amp;amp;syncToDouban=false&amp;amp;syncToQzone=false&amp;amp;syncToRenren=false&amp;amp;syncToFacebook=false&amp;amp;syncToTwitter=false&amp;amp;syncToFlickr=false&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;其中$formkey为对应每个博客的一个数字ID。$markdownbody为发布的内容（我用的是markdown编辑模式发布的）
+其他的参数也没什么好解释的，就是字面的意思。&lt;/p&gt;
+&lt;p&gt;获取formKey的办法&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;curl http://www.diandian.com/dianlog/khalidhsu/new/text  -b ~/ddcookie |grep DDformKey|cut -d&lt;span class="s2"&gt;&amp;quot;&amp;#39;&amp;quot;&lt;/span&gt; -f 2 &amp;gt;~/ddformkey
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;其中khalidhsu为我的博客地址，获取的ddformkey保存为~/ddformkey。 &lt;br /&gt;
+等等，你还没拿到cookie哦，要先把这块不能吃的cookie拿到手才能干活的。代码如下：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;curl -c ~/ddcookie http://www.diandian.com/login -d &lt;span class="s2"&gt;&amp;quot;account=khalidhsu%40gmail.com&amp;amp;password=youpassword&amp;amp;persistent=1&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;将上面的账户名和密码改为你的即可。执行一下，得到的cookie就保存在~/ddcookie。&lt;br /&gt;
+以上的几步就是发表文章的关键几步了。&lt;br /&gt;
+实际上，我把这写代码写成两个bash脚本，然后再用elisp调用的。&lt;br /&gt;
+听起来很麻烦？当然不会，我在emacs里面写好文章，只需要简单的两步就可以发表了^_^&lt;br /&gt;
+好了，先写到这，有空再补充一下。 &lt;/p&gt;</summary><category term="emacs"></category><category term="diandian"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2012/Oct/12/20121012/" rel="alternate"></link><updated>2012-10-12T01:13:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2012-10-12:posts/2012/Oct/12/20121012/</id><summary type="html">&lt;p&gt;老板娘切伤手指了。&lt;br /&gt;
+切的很深。&lt;br /&gt;
+还伤心的开玩笑说，一截没了。  &lt;/p&gt;
+&lt;p&gt;希望她快点好起来。  &lt;/p&gt;</summary><category term="life"></category></entry><entry><title></title><link href="http://khalidhsu.github.com/posts/2012/Oct/01/20121001/" rel="alternate"></link><updated>2012-10-01T18:17:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2012-10-01:posts/2012/Oct/01/20121001/</id><summary type="html">&lt;p&gt;Fresh Start.&lt;/p&gt;</summary><category term="life"></category></entry></feed>

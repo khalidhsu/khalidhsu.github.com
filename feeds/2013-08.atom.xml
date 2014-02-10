@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Khalid Hsu</title><link href="http://khalidhsu.github.com/" rel="alternate"></link><link href="http://khalidhsu.github.com/feeds/2013-08.atom.xml" rel="self"></link><id>http://khalidhsu.github.com/</id><updated>2013-08-14T19:30:00+02:00</updated><entry><title></title><link href="http://khalidhsu.github.com/posts/2013/Aug/14/wdidle3/" rel="alternate"></link><updated>2013-08-14T19:30:00+02:00</updated><author><name>Khalid Hsu</name></author><id>tag:khalidhsu.github.com,2013-08-14:posts/2013/Aug/14/wdidle3/</id><summary type="html">&lt;p&gt;新买的WD蓝盘，用了半年左右，Load_Cycle_Count居然达到了8W多。&lt;br /&gt;
+之前希捷的硬盘，设置了APM参数就可以搞定这个问题，不过同样的方法对这WD无效。&lt;br /&gt;
+后来发现，WD官方提供WDIDLE3（纯DOS软件），可以修改硬盘的计时器。&lt;br /&gt;
+将计时器修改为240发现情况好转。&lt;br /&gt;
+不过貌似黑盘和蓝盘的是要区别对待的，&lt;a href="http://dell.benyouhui.it168.com/thread-1238605-1-1.html"&gt;这里是别人的测试&lt;/a&gt;  &lt;/p&gt;</summary><category term="wd"></category><category term="hardisk"></category></entry></feed>

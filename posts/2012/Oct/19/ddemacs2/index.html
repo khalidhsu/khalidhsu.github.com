@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link rel="stylesheet" type="text/css" href="../../../../../theme/css/style.css">
+	<!--<link rel="stylesheet/less" type="text/css" href="/theme/css/style.less">-->
+	<!--<script src="/theme/js/less.js" type="text/javascript"></script>-->
+        <script src="/theme/js/clicki.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="../../../../../theme/css/pygments.css">
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:800,400,300|Inconsolata' rel='stylesheet' type='text/css'>
+
+	<link href="http://khalidhsu.github.com/" type="application/atom+xml" rel="alternate" title="Khalid Hsu ATOM Feed" />
+		<link href="http://khalidhsu.github.com/feeds/all.rss.xml" type="application/atom+xml" rel="alternate" title="Khalid Hsu RSS Feed" />
+
+
+		<title>Khalid Hsu</title>
+		<meta charset="utf-8" />
+</head>
+<body>
+	<section id="sidebar">
+		<figure id="user_logo">
+            <a href="../../../../.."><div class="logo">&nbsp;</div></a>
+		</figure>
+
+		<div class="user_meta">
+            <h1 id="user"><a href="../../../../.." class="">Khalid Hsu</a></h1>
+			<h2></h2>
+			<ul>
+					<li><a href="http://khalidhsu.github.com/categories.html">Cate</a></li>
+					<li><a href="http://khalidhsu.github.com/tags.html">Tags</a></li>
+					<li><a href="http://khalidhsu.github.com/feeds/all.atom.xml">RSS</a></li>
+					<li><a href="http://khalidhsu.github.com/pages/about.html">ABOUT</a></li>
+			</ul>
+		</div>
+		<footer>
+			<address>
+				Powered by <a href="http://pelican.notmyidea.org/">Pelican</a>,
+		                theme by <a href="https://github.com/wting/pelican-svbtle">wting</a>.
+			</address>
+		</footer>
+	</section>
+
+	<section id="posts">
+	<header>
+		<h1>Khalid Hsu's blog</h1>
+		<h3>Posted Fri 19 October 2012</h3>
+	</header>
+	<article>
+		<h1 id="title">
+			<a href="../../../../../posts/2012/Oct/19/ddemacs2/" rel="bookmark"
+				title="Permalink to 用emacs写点点博客(续)">用emacs写点点博客(续)</a>
+		</h1>
+		<p>终于做完了多到变态又毫无意义的数据库作业。<br />
+好了，贴些代码，忘记所有的不快。<br />
+上次我用emacs写点点博客时候用两个bash脚本，然后干脆修改一下，合并成一个，代码如下</p>
+<div class="highlight"><pre><span class="c">#!/bin/bash</span>
+<span class="nv">self</span><span class="o">=</span><span class="s2">&quot;$0&quot;</span>
+<span class="nb">pushd</span> <span class="s2">&quot;$(dirname -- $self)&quot;</span>&gt;/dev/null
+
+ddlog<span class="o">()</span>
+<span class="o">{</span>
+    <span class="c">#username pwds out_cookie_file</span>
+    curl -c <span class="nv">$3</span> http://www.diandian.com/login -d <span class="s2">&quot;account=$1&amp;password=$2&amp;persistent=1&quot;</span>
+<span class="o">}</span>
+
+ddgetfrmkey<span class="o">()</span>
+<span class="o">{</span>
+    <span class="c">#cookiefile bgaddr out_put_ddfrmkey</span>
+    curl http://www.diandian.com/dianlog/<span class="nv">$2</span>/new/text  -b <span class="nv">$1</span> |grep DDformKey|cut -d<span class="s2">&quot;&#39;&quot;</span> -f 2 &gt;<span class="nv">$3</span>
+<span class="o">}</span>
+
+ddpost<span class="o">()</span>
+<span class="o">{</span>
+    <span class="c">#cookiefile bgaddr ddfrmkey  postfile</span>
+    <span class="nv">cookiefile</span><span class="o">=</span><span class="nv">$1</span>;  <span class="nv">bgaddr</span><span class="o">=</span><span class="nv">$2</span>; <span class="nv">ddfrmkey</span><span class="o">=</span><span class="nv">$3</span>; <span class="nv">postfile</span><span class="o">=</span><span class="nv">$4</span>
+    <span class="nv">ddcfg</span><span class="o">=</span><span class="s2">&quot;$postfile.dd&quot;</span>
+    <span class="nv">tags</span><span class="o">=</span><span class="sb">`</span>cat <span class="nv">$ddcfg</span>|grep -v <span class="se">\#</span>|grep tags<span class="sb">`</span> <span class="c">#has = !</span>
+    <span class="nv">uri</span><span class="o">=</span><span class="sb">`</span>cat <span class="nv">$ddcfg</span>|grep -v <span class="se">\#</span>|grep uri<span class="sb">`</span> <span class="c"># has = !</span>
+    <span class="nv">formKey</span><span class="o">=</span><span class="sb">`</span>cat <span class="nv">$ddfrmkey</span><span class="sb">`</span>
+    <span class="nv">markdownbody</span><span class="o">=</span><span class="k">$(</span>python -c <span class="s2">&quot;import urllib; print urllib.quote(open(&#39;$postfile&#39;).read())&quot;</span><span class="k">)</span>
+    curl -b <span class="nv">$cookiefile</span>  http://www.diandian.com/dianlog/<span class="nv">$bgaddr</span>/new/text -d <span class="s2">&quot;formKey=$formKey&amp;title=&amp;markdownContent=$markdownbody&amp;$uri&amp;$tags&amp;privacy=0&amp;setTop=false&amp;creativeCommonsEnable=true&amp;creativeCommonsType=by_nc_sa&amp;syncToWeibo=false&amp;syncToQqWeibo=false&amp;syncToDouban=false&amp;syncToQzone=false&amp;syncToRenren=false&amp;syncToFacebook=false&amp;syncToTwitter=false&amp;syncToFlickr=false&quot;</span>
+
+<span class="o">}</span>
+
+<span class="k">function </span>showerr<span class="o">()</span>
+<span class="o">{</span>
+    <span class="nb">echo </span>err!
+<span class="o">}</span>
+
+<span class="k">case</span> <span class="nv">$1</span> in  
+    -l | --log-in<span class="o">)</span>  
+        ddlog <span class="nv">$2</span> <span class="nv">$3</span> <span class="nv">$4</span>
+        ;;  
+    -g | --get-fk<span class="o">)</span>  
+        ddgetfrmkey <span class="nv">$2</span> <span class="nv">$3</span> <span class="nv">$4</span>
+        ;;
+    -p | --post<span class="o">)</span>  
+        ddpost <span class="nv">$2</span> <span class="nv">$3</span> <span class="nv">$4</span> <span class="nv">$5</span>
+        ;; 
+    *<span class="o">)</span>  
+        showerr
+        ;;  
+<span class="k">esac</span>  
+</pre></div>
+
+
+<p>再贴一段调用该bash脚本的elisp，代码如下</p>
+<div class="highlight"><pre><span class="c1">;;ddemacs</span>
+<span class="c1">;;by Khalid Hsu</span>
+<span class="c1">;;2012.10.17</span>
+
+<span class="p">(</span><span class="nb">defvar</span> <span class="nv">dd-sh</span> <span class="s">&quot;~/bash/dd-foo.sh&quot;</span><span class="p">)</span><span class="c1">;;path of the bash script</span>
+<span class="p">(</span><span class="nb">defvar</span> <span class="nv">dd-dir</span> <span class="s">&quot;~/.diandian&quot;</span><span class="p">)</span><span class="c1">;;dir for saving cookie and formkey</span>
+<span class="p">(</span><span class="nb">defvar</span> <span class="nv">dd-acc</span> <span class="s">&quot;khalidhsu@gmail.com&quot;</span><span class="p">)</span>
+<span class="p">(</span><span class="nb">defvar</span> <span class="nv">dd-pwd</span> <span class="no">nil</span><span class="p">)</span><span class="c1">;;just leave it nil</span>
+<span class="p">(</span><span class="nb">defvar</span> <span class="nv">dd-blog-addrs</span> <span class="o">&#39;</span><span class="p">(</span><span class="s">&quot;khalidhsu&quot;</span>  <span class="s">&quot;anotherblog&quot;</span><span class="p">))</span>
+<span class="p">(</span><span class="nb">defvar</span> <span class="nv">dd-cfg-ext</span> <span class="s">&quot;.dd&quot;</span><span class="p">)</span>
+<span class="p">(</span><span class="nb">defvar</span> <span class="nv">dd-cookie-file</span> <span class="no">nil</span><span class="p">)</span><span class="c1">;;just leave it nil</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">dd-select-blog</span><span class="p">(</span><span class="nv">blog-list</span><span class="p">)</span>
+  <span class="s">&quot;Before U post.&quot;</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">blog-list-in-list</span>
+         <span class="p">(</span><span class="nb">mapcon</span> <span class="ss">&#39;list</span> <span class="nv">blog-list</span><span class="p">))</span>
+        <span class="p">(</span><span class="nv">ret</span> <span class="no">nil</span><span class="p">))</span>
+    <span class="p">(</span><span class="nv">while</span> <span class="p">(</span><span class="nb">or</span> <span class="p">(</span><span class="nb">not</span> <span class="nv">ret</span><span class="p">)</span>
+               <span class="p">(</span><span class="nb">=</span> <span class="mi">0</span> <span class="p">(</span><span class="nb">length</span> <span class="nv">ret</span><span class="p">)))</span>
+      <span class="p">(</span><span class="k">setq</span> <span class="nv">ret</span> <span class="p">(</span><span class="nv">completing-read</span>
+                 <span class="s">&quot;Select a blog:&quot;</span>
+                 <span class="nv">blog-list-in-list</span> <span class="no">nil</span> <span class="no">t</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">blog-list</span><span class="p">))))</span>
+    <span class="nv">ret</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">dd-check-dir</span><span class="p">()</span>
+  <span class="s">&quot;Before U login&quot;</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nv">file-readable-p</span>
+            <span class="p">(</span><span class="nv">directory-file-name</span> <span class="nv">dd-dir</span><span class="p">)))</span>
+      <span class="p">(</span><span class="nv">make-directory</span> <span class="nv">dd-dir</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">dd-save-cookie</span><span class="p">()</span>
+  <span class="c1">;;#username pwds out_cookie_file</span>
+  <span class="p">(</span><span class="nv">shell-command</span> <span class="p">(</span><span class="nb">format</span> <span class="s">&quot;bash %s -l %s %s %s&quot;</span> <span class="nv">dd-sh</span>
+                         <span class="nv">dd-acc</span> <span class="nv">dd-pwd</span> <span class="nv">dd-cookie-file</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">dd-save-formkey</span><span class="p">()</span>
+  <span class="c1">;;#cookiefile bgaddr out_put_ddfrmkey</span>
+  <span class="p">(</span><span class="nb">mapc</span> <span class="o">&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+           <span class="p">(</span><span class="nv">shell-command</span>
+            <span class="p">(</span><span class="nb">format</span> <span class="s">&quot;bash %s -g %s %s %s&quot;</span> <span class="nv">dd-sh</span>
+                    <span class="nv">dd-cookie-file</span> <span class="nv">x</span> <span class="p">(</span><span class="nv">expand-file-name</span>
+                                      <span class="nv">x</span> <span class="nv">dd-dir</span><span class="p">))))</span>
+        <span class="nv">dd-blog-addrs</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">dd-login</span><span class="p">()</span>
+  <span class="p">(</span><span class="nv">interactive</span><span class="p">)</span>
+  <span class="p">(</span><span class="nv">dd-init</span><span class="p">)</span>
+  <span class="p">(</span><span class="nv">dd-check-dir</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">setq</span> <span class="nv">dd-pwd</span> <span class="p">(</span><span class="nv">read-passwd</span> <span class="s">&quot;Password:&quot;</span><span class="p">))</span>
+  <span class="p">(</span><span class="nv">dd-save-cookie</span><span class="p">)</span>
+  <span class="p">(</span><span class="nv">dd-save-formkey</span><span class="p">)</span>
+  <span class="p">(</span><span class="nv">message</span> <span class="s">&quot;Done.&quot;</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">dd-post</span><span class="p">()</span>
+  <span class="s">&quot;To post the dd article.&quot;</span>
+  <span class="p">(</span><span class="nv">interactive</span><span class="p">)</span>
+  <span class="p">(</span><span class="nv">dd-init</span><span class="p">)</span>
+  <span class="p">(</span><span class="nv">save-buffer</span> <span class="no">t</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">ddbuf</span> <span class="p">(</span><span class="nv">buffer-file-name</span> <span class="p">(</span><span class="nv">current-buffer</span><span class="p">)))</span>
+        <span class="nv">target-bg</span>
+        <span class="nv">target-bg-frmk</span>
+        <span class="nv">ddcfgf</span> <span class="c1">;;.dd</span>
+        <span class="nv">post-cmd</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">if</span>  <span class="p">(</span><span class="nv">string-suffix-p</span>  <span class="nv">dd-cfg-ext</span> <span class="nv">ddbuf</span><span class="p">)</span>
+        <span class="p">(</span><span class="k">setq</span> <span class="nv">ddbuf</span> <span class="p">(</span><span class="nv">substring</span> <span class="nv">ddbuf</span> <span class="mi">0</span> <span class="mi">-3</span><span class="p">)))</span><span class="c1">;;in case the user got it wrong</span>
+    <span class="p">(</span><span class="k">setq</span> <span class="nv">ddcfgf</span> <span class="p">(</span><span class="nv">concat</span> <span class="nv">ddbuf</span> <span class="nv">dd-cfg-ext</span><span class="p">))</span>
+    <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nv">file-readable-p</span> <span class="nv">ddcfgf</span><span class="p">)</span> <span class="p">)</span>
+        <span class="p">(</span><span class="k">progn</span> <span class="p">(</span><span class="nv">dd-cfg</span><span class="p">)</span>
+               <span class="p">(</span><span class="nv">message</span> <span class="s">&quot;Finish the dd cfg first!&quot;</span><span class="p">))</span>
+      <span class="c1">;;else part: all-fine</span>
+      <span class="p">(</span><span class="k">setq</span> <span class="nv">target-bg</span> <span class="p">(</span><span class="nv">dd-select-blog</span> <span class="nv">dd-blog-addrs</span><span class="p">))</span>
+      <span class="p">(</span><span class="k">setq</span> <span class="nv">target-bg-frmk</span> <span class="p">(</span><span class="nv">expand-file-name</span> <span class="nv">target-bg</span> <span class="nv">dd-dir</span><span class="p">))</span>
+      <span class="c1">;;#cookiefile bgaddr ddfrmkey  postfile</span>
+      <span class="p">(</span><span class="k">setq</span> <span class="nv">post-cmd</span>
+            <span class="p">(</span><span class="nb">format</span> <span class="s">&quot;bash %s -p %s %s %s %s&quot;</span> <span class="nv">dd-sh</span>
+                    <span class="nv">dd-cookie-file</span>  <span class="nv">target-bg</span> <span class="nv">target-bg-frmk</span> <span class="nv">ddbuf</span> <span class="p">))</span>
+      <span class="p">(</span><span class="nv">m-eshell</span><span class="p">)</span>
+      <span class="p">(</span><span class="nv">insert</span> <span class="nv">post-cmd</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">dd-cfg</span><span class="p">()</span>
+  <span class="s">&quot;To write the dd cfg file.&quot;</span>
+  <span class="p">(</span><span class="nv">interactive</span><span class="p">)</span>
+  <span class="p">(</span><span class="nv">save-buffer</span> <span class="no">t</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">postname</span> <span class="p">(</span><span class="nv">i-get-buf-base-name</span> <span class="p">(</span><span class="nv">current-buffer</span><span class="p">))))</span>
+    <span class="p">(</span><span class="nv">find-file</span> <span class="p">(</span><span class="nv">concat</span> <span class="p">(</span><span class="nv">buffer-file-name</span>
+                        <span class="p">(</span><span class="nv">current-buffer</span><span class="p">))</span> <span class="nv">dd-cfg-ext</span><span class="p">))</span>
+    <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nv">point-min</span><span class="p">)</span> <span class="mi">10</span><span class="p">)</span> <span class="p">(</span><span class="nv">point-max</span><span class="p">))</span>
+        <span class="p">(</span><span class="k">progn</span>
+          <span class="p">(</span><span class="nv">delete-region</span> <span class="p">(</span><span class="nv">point-min</span><span class="p">)</span> <span class="p">(</span><span class="nv">point-max</span><span class="p">))</span>
+          <span class="p">(</span><span class="nv">insert</span> <span class="s">&quot;[ddcfg]\n&quot;</span><span class="p">)</span>
+          <span class="p">(</span><span class="nv">insert</span> <span class="s">&quot;tags=\n&quot;</span><span class="p">)</span>
+          <span class="p">(</span><span class="nv">insert</span> <span class="p">(</span><span class="nv">concat</span> <span class="s">&quot;#uri=post%2F&quot;</span>
+                          <span class="p">(</span><span class="nv">format-time-string</span> <span class="s">&quot;%Y-%m-%d&quot;</span><span class="p">)</span>
+                          <span class="s">&quot;%2F&quot;</span> <span class="nv">postname</span> <span class="s">&quot;\n&quot;</span><span class="p">))</span>
+          <span class="p">(</span><span class="nv">save-buffer</span> <span class="no">t</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">dd-init</span><span class="p">()</span>
+  <span class="s">&quot;Exec-ed by the func of &#39;login&#39; and &#39;post&#39;.&quot;</span>
+  <span class="p">(</span><span class="nv">interactive</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">setq</span> <span class="nv">dd-cookie-file</span>
+        <span class="p">(</span><span class="nv">expand-file-name</span> <span class="s">&quot;ddcookie&quot;</span>
+                          <span class="nv">dd-dir</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nv">defalias</span> <span class="ss">&#39;ddp</span> <span class="ss">&#39;dd-post</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">defalias</span> <span class="ss">&#39;ddc</span> <span class="ss">&#39;dd-cfg</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">defalias</span> <span class="ss">&#39;ddl</span> <span class="ss">&#39;dd-login</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nb">provide</span> <span class="ss">&#39;dd-emacs</span><span class="p">)</span>
+</pre></div>
+
+
+<p>关键的是bash代码，而elisp写了这么多，只是为了我自己用起来更舒服。
+这里比较特别的地方是，由于我喜欢给文章加上标签和发布链接等信息，而又不想污染markdown文档，所以，对于每篇要发表的文章X，我都用额外的一个文件X.dd来记录附加信息。
+该文件格式如。</p>
+<pre config="brush:mybox;toolbar:false;">
+[ddcfg]
+tags=emacs,diandian,折腾
+#uri=post%2F2012-10-17%2Fddemacs2
+</pre>
+
+<p>tags是要加入的标签，uri是自定义发布的链接，加了#号在前就是注释掉。
+所以每次发布文章前，执行</p>
+<pre config="brush:mybox;toolbar:false;">
+M－x ddc RET  
+</pre>
+
+<p>来填写附加的信息。然后</p>
+<pre config="brush:mybox;toolbar:false;">
+M－x ddp RET
+</pre>
+
+<p>就发布到博客中。
+当然，如果是第一次使用或者是cookie失效了，就先</p>
+<pre config="brush:mybox;toolbar:false;">
+M－x ddl RET
+</pre>
+
+<p>来获取cookie和formkey等。</p>
+
+		<div id="article_meta">
+				Category:
+					<a href="../../../../../category/2012-10.html">2012-10</a>
+				<br />Tags:
+					<a href="../../../../../tag/emacs.html">emacs</a>
+					<a href="../../../../../tag/diandian.html">diandian</a>
+		</div>
+	</article>
+
+	<footer>
+		<a href="../../../../../" class="button_accent">&larr;&nbsp;&nbsp;&nbsp;Back to blog</a>
+	</footer>
+
+	<div id="comments">
+		<h2>Comments</h2>
+		<div id="disqus_thread"></div>
+		<script type="text/javascript">
+			var disqus_identifier = "posts/2012/Oct/19/ddemacs2/";
+			(function() {
+				var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+				dsq.src = 'http://khalidhsu.disqus.com/embed.js';
+				(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+			})();
+		</script>
+		<noscript>Please enable JavaScript to view <a href="http://disqus.com/?ref_noscript">comments</a>.</noscript>
+	</div>
+
+	</section>
+
+</body>
+</html>

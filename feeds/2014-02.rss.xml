@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Khalid Hsu</title><link>http://khalidhsu.github.com/</link><description></description><atom:link href="http://khalidhsu.github.com/feeds/2014-02.rss.xml" rel="self"></atom:link><lastBuildDate>Fri, 07 Feb 2014 22:06:00 +0100</lastBuildDate><item><title>定時重啓非智能路由</title><link>http://khalidhsu.github.com/posts/2014/Feb/07/auto-reboot-router/</link><description>&lt;p&gt;最近路由智能的概念，讓這個被遺忘在客廳角落積滿灰塵的破盒子重新煥發光彩，搖身變成各互聯網公司眼中流量入口的必爭之地。&lt;br /&gt;
+不過本文所述的路由器，並非近期大紅大紫的智能路由。&lt;br /&gt;
+而恰恰是因爲我手頭這款路由器極其不智能，才有此無聊折騰。&lt;br /&gt;
+首先，感謝手頭這款路由器。它陪伴我度過了2014的春節。期間它超高負荷，運作不斷，服務了大大小小的各種設備，包括我的PC，各位親戚朋友的手機等等。如此艱難困苦它也沒有半句怨言，實屬難得。&lt;br /&gt;
+不過話說回來，這台路由器還真挺搓的。至於它有多搓、哪裏搓，我沒有這個精氣神去細數。它是哪個牌子哪個型號的，我也不黑它。它滿足不了我，不代表滿足不了其他人。&lt;br /&gt;
+但是，它有一個明顯的缺點讓我特不爽特想吐槽，就是他的持久力不夠！有點類似內存泄漏的症狀，運作時間一長就會神經兮兮，連後臺管理頁面都無法訪問。此刻只能無奈地給它來個硬重啓。然後它立即又沒心沒肺的滿血復活，甚至比吃了菠菜的大力水手還要猛N倍，完全沒有剛剛的痛苦。 &lt;br /&gt;
+這樣看來，要解決這個問題也不是沒辦法的，每天給它重啓一遍就行。此神經病雖未能根治，但湊合着也還能過日子。&lt;br /&gt;
+當然，每天都屁顛屁顛的來到路由面前按一下重啓，然後又屁顛屁顛的回到電腦面前，這事情可不是人幹的，至少我不會這樣幹。&lt;br /&gt;
+實際上我的第一個解決辦法是，在X寶上買了一個定時開關，設定給路由器的開關時間就OK了。不過這可憐的定時開關，沒活幾天就因爲一個意外而短路一命嗚呼了，劇情比韓劇還要狗血。&lt;br /&gt;
+更傷心的是，臨近過年X寶上的賣家都說要等春節過後才發貨。擦，無奈之下就有了第二個方法。  &lt;/p&gt;
+&lt;p&gt;方法二其實也很簡單，路由器的後臺管理頁面一般都提供重啓功能。咱就直接寫個腳本模仿一下後臺操作。用curl那就是：  &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;curl &lt;span class="s1"&gt;&amp;#39;http://192.168.1.1/userRpm/SysRebootRpm.htm?Reboot=%D6%D8%C6%F4%C2%B7%D3%C9%C6%F7&amp;#39;&lt;/span&gt; -H &lt;span class="s1"&gt;&amp;#39;Authorization: Basic dXNlcjpwYXNzd29yZA==&amp;#39;&lt;/span&gt;  
+&lt;span class="c"&gt;# 常見的路由器都用HTTP基本認證，也就是Authorization這個header，base64編碼  &lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;只要執行一下這行命令就能重啓路由了。不過如果赤裸裸的照做，那用戶體驗也太差了。重啓一下路由我得等個把分鐘才能連上wifi。時間比金錢重要，沒理由把青春揮霍在這。  &lt;/p&gt;
+&lt;p&gt;我覺得在某一個時間讓路由器自動重啓更好。對我來說，凌晨5點半是個不錯的時間，因爲我通常不會熬夜到這個時間。不過此時電腦關了，crontab無效。我也不喜歡讓手機，平板承擔如此苦逼的定時任務，只好辛苦一下神聖的gae了。在此感谢它给我，還有和我一樣飽受專制壓迫的廣大網民带来的精神自由。  &lt;/p&gt;
+&lt;p&gt;說明一下，要通過gae來重啓路由，你得先在路由中設置允許遠程web管理。另外，因爲每次重啓都會變動IP，所以你還得開啓路由的動態DNS（DDNS）。  &lt;/p&gt;
+&lt;p&gt;下面，建立一個gae工程（我直接在sdk的demo上稍作改動）：&lt;br /&gt;
+autorouter.py：  &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;cgi&lt;/span&gt;  
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;webapp2&lt;/span&gt;  
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;google.appengine.api&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;urlfetch&lt;/span&gt;  
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;reboot_router&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;  
+  &lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;http://yourname.eicp.net:8123/userRpm/SysRebootRpm.htm?Reboot=%D6%D8%C6&lt;/span&gt;&lt;span class="si"&gt;%F&lt;/span&gt;&lt;span class="s"&gt;4%C2%B7%D3%C9%C6&lt;/span&gt;&lt;span class="si"&gt;%F&lt;/span&gt;&lt;span class="s"&gt;7&amp;#39;&lt;/span&gt;  
+  &lt;span class="n"&gt;header_authorized&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;Basic dXNlcjpwYXNzd29yZA==&amp;#39;&lt;/span&gt;  
+  &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;urlfetch&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;fetch&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  
+                          &lt;span class="n"&gt;method&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;urlfetch&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;GET&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  
+                          &lt;span class="n"&gt;headers&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;Authorization&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;header_authorized&lt;/span&gt; &lt;span class="p"&gt;})&lt;/span&gt;  
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;MainPage&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;webapp2&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;RequestHandler&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;  
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;  
+    &lt;span class="n"&gt;reboot_router&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;  
+
+&lt;span class="n"&gt;app&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;webapp2&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;WSGIApplication&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;  
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;MainPage&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;  
+&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;debug&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="bp"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;  
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;也就是直接用urlfetch發出一個一樣的http請求，目標域名是我在花生殼上註冊得來的。  &lt;/p&gt;
+&lt;p&gt;下面设置定时任务，每天凌晨五點半之前我應該都能按計劃離開電腦去睡覺。別忘了還有設置timezone。&lt;br /&gt;
+cron.yaml：  &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="l-Scalar-Plain"&gt;cron&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt;  
+&lt;span class="p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;description&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;auto reboot the router&lt;/span&gt;  
+  &lt;span class="l-Scalar-Plain"&gt;url&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;/&lt;/span&gt;  
+  &lt;span class="l-Scalar-Plain"&gt;schedule&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;every day 05:30&lt;/span&gt;  
+  &lt;span class="l-Scalar-Plain"&gt;timezone&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;Asia/Hong_Kong&lt;/span&gt;  
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;最好更改一下訪問權限，如果不想其他人幫忙重啓路由。&lt;br /&gt;
+handlers增加login: admin  &lt;/p&gt;
+&lt;p&gt;app.yaml：  &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="l-Scalar-Plain"&gt;application&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;khalidrouter&lt;/span&gt;  
+&lt;span class="l-Scalar-Plain"&gt;version&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;1&lt;/span&gt;  
+&lt;span class="l-Scalar-Plain"&gt;runtime&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;python27&lt;/span&gt;  
+&lt;span class="l-Scalar-Plain"&gt;api_version&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;1&lt;/span&gt;  
+&lt;span class="l-Scalar-Plain"&gt;threadsafe&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;yes&lt;/span&gt;  
+
+&lt;span class="l-Scalar-Plain"&gt;handlers&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt;  
+&lt;span class="p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;url&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;.*&lt;/span&gt;  
+  &lt;span class="l-Scalar-Plain"&gt;script&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;autorouter.app&lt;/span&gt;  
+  &lt;span class="l-Scalar-Plain"&gt;login&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;admin&lt;/span&gt;  
+&lt;span class="l-Scalar-Plain"&gt;libraries&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt;  
+&lt;span class="p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;name&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l-Scalar-Plain"&gt;webapp2&lt;/span&gt;  
+  &lt;span class="l-Scalar-Plain"&gt;version&lt;/span&gt;&lt;span class="p-Indicator"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;2.5.2&amp;quot;&lt;/span&gt;  
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;a href="https://github.com/khalidhsu/autorouter"&gt;注：上述文件已經放到github中 。&lt;/a&gt; &lt;/p&gt;
+&lt;p&gt;最後還得注意一點，那就是路由器的撥號連接最好設置成自動連接，不要設置成“按需連接"。以保證gae發出重啓指令時候，路由是在線的。&lt;br /&gt;
+好吧，爲了這破路由，傾注了一池廢話。要是它能刷openwrt，一切都不必如此。   &lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Khalid Hsu</dc:creator><pubDate>Fri, 07 Feb 2014 22:06:00 +0100</pubDate><guid>tag:khalidhsu.github.com,2014-02-07:posts/2014/Feb/07/auto-reboot-router/</guid><category>router</category><category>gae</category></item><item><title></title><link>http://khalidhsu.github.com/posts/2014/Feb/05/20140205/</link><description>&lt;p&gt;和老同學相聚。&lt;br /&gt;
+爲人父、爲人母的已不在少數。  &lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Khalid Hsu</dc:creator><pubDate>Wed, 05 Feb 2014 00:28:00 +0100</pubDate><guid>tag:khalidhsu.github.com,2014-02-05:posts/2014/Feb/05/20140205/</guid><category>life</category></item></channel></rss>

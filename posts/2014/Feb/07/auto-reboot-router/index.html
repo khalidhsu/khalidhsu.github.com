@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link rel="stylesheet" type="text/css" href="../../../../../theme/css/style.css">
+	<!--<link rel="stylesheet/less" type="text/css" href="/theme/css/style.less">-->
+	<!--<script src="/theme/js/less.js" type="text/javascript"></script>-->
+        <script src="/theme/js/clicki.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="../../../../../theme/css/pygments.css">
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:800,400,300|Inconsolata' rel='stylesheet' type='text/css'>
+
+	<link href="http://khalidhsu.github.com/" type="application/atom+xml" rel="alternate" title="Khalid Hsu ATOM Feed" />
+		<link href="http://khalidhsu.github.com/feeds/all.rss.xml" type="application/atom+xml" rel="alternate" title="Khalid Hsu RSS Feed" />
+
+
+		<title>Khalid Hsu</title>
+		<meta charset="utf-8" />
+</head>
+<body>
+	<section id="sidebar">
+		<figure id="user_logo">
+            <a href="../../../../.."><div class="logo">&nbsp;</div></a>
+		</figure>
+
+		<div class="user_meta">
+            <h1 id="user"><a href="../../../../.." class="">Khalid Hsu</a></h1>
+			<h2></h2>
+			<ul>
+					<li><a href="http://khalidhsu.github.com/categories.html">Cate</a></li>
+					<li><a href="http://khalidhsu.github.com/tags.html">Tags</a></li>
+					<li><a href="http://khalidhsu.github.com/feeds/all.atom.xml">RSS</a></li>
+					<li><a href="http://khalidhsu.github.com/pages/about.html">ABOUT</a></li>
+			</ul>
+		</div>
+		<footer>
+			<address>
+				Powered by <a href="http://pelican.notmyidea.org/">Pelican</a>,
+		                theme by <a href="https://github.com/wting/pelican-svbtle">wting</a>.
+			</address>
+		</footer>
+	</section>
+
+	<section id="posts">
+	<header>
+		<h1>Khalid Hsu's blog</h1>
+		<h3>Posted Fri 07 February 2014</h3>
+	</header>
+	<article>
+		<h1 id="title">
+			<a href="../../../../../posts/2014/Feb/07/auto-reboot-router/" rel="bookmark"
+				title="Permalink to 定時重啓非智能路由">定時重啓非智能路由</a>
+		</h1>
+		<p>最近路由智能的概念，讓這個被遺忘在客廳角落積滿灰塵的破盒子重新煥發光彩，搖身變成各互聯網公司眼中流量入口的必爭之地。<br />
+不過本文所述的路由器，並非近期大紅大紫的智能路由。<br />
+而恰恰是因爲我手頭這款路由器極其不智能，才有此無聊折騰。<br />
+首先，感謝手頭這款路由器。它陪伴我度過了2014的春節。期間它超高負荷，運作不斷，服務了大大小小的各種設備，包括我的PC，各位親戚朋友的手機等等。如此艱難困苦它也沒有半句怨言，實屬難得。<br />
+不過話說回來，這台路由器還真挺搓的。至於它有多搓、哪裏搓，我沒有這個精氣神去細數。它是哪個牌子哪個型號的，我也不黑它。它滿足不了我，不代表滿足不了其他人。<br />
+但是，它有一個明顯的缺點讓我特不爽特想吐槽，就是他的持久力不夠！有點類似內存泄漏的症狀，運作時間一長就會神經兮兮，連後臺管理頁面都無法訪問。此刻只能無奈地給它來個硬重啓。然後它立即又沒心沒肺的滿血復活，甚至比吃了菠菜的大力水手還要猛N倍，完全沒有剛剛的痛苦。 <br />
+這樣看來，要解決這個問題也不是沒辦法的，每天給它重啓一遍就行。此神經病雖未能根治，但湊合着也還能過日子。<br />
+當然，每天都屁顛屁顛的來到路由面前按一下重啓，然後又屁顛屁顛的回到電腦面前，這事情可不是人幹的，至少我不會這樣幹。<br />
+實際上我的第一個解決辦法是，在X寶上買了一個定時開關，設定給路由器的開關時間就OK了。不過這可憐的定時開關，沒活幾天就因爲一個意外而短路一命嗚呼了，劇情比韓劇還要狗血。<br />
+更傷心的是，臨近過年X寶上的賣家都說要等春節過後才發貨。擦，無奈之下就有了第二個方法。  </p>
+<p>方法二其實也很簡單，路由器的後臺管理頁面一般都提供重啓功能。咱就直接寫個腳本模仿一下後臺操作。用curl那就是：  </p>
+<div class="highlight"><pre>curl <span class="s1">&#39;http://192.168.1.1/userRpm/SysRebootRpm.htm?Reboot=%D6%D8%C6%F4%C2%B7%D3%C9%C6%F7&#39;</span> -H <span class="s1">&#39;Authorization: Basic dXNlcjpwYXNzd29yZA==&#39;</span>  
+<span class="c"># 常見的路由器都用HTTP基本認證，也就是Authorization這個header，base64編碼  </span>
+</pre></div>
+
+
+<p>只要執行一下這行命令就能重啓路由了。不過如果赤裸裸的照做，那用戶體驗也太差了。重啓一下路由我得等個把分鐘才能連上wifi。時間比金錢重要，沒理由把青春揮霍在這。  </p>
+<p>我覺得在某一個時間讓路由器自動重啓更好。對我來說，凌晨5點半是個不錯的時間，因爲我通常不會熬夜到這個時間。不過此時電腦關了，crontab無效。我也不喜歡讓手機，平板承擔如此苦逼的定時任務，只好辛苦一下神聖的gae了。在此感谢它给我，還有和我一樣飽受專制壓迫的廣大網民带来的精神自由。  </p>
+<p>說明一下，要通過gae來重啓路由，你得先在路由中設置允許遠程web管理。另外，因爲每次重啓都會變動IP，所以你還得開啓路由的動態DNS（DDNS）。  </p>
+<p>下面，建立一個gae工程（我直接在sdk的demo上稍作改動）：<br />
+autorouter.py：  </p>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">cgi</span>  
+<span class="kn">import</span> <span class="nn">webapp2</span>  
+<span class="kn">from</span> <span class="nn">google.appengine.api</span> <span class="kn">import</span> <span class="n">urlfetch</span>  
+
+<span class="k">def</span> <span class="nf">reboot_router</span><span class="p">():</span>  
+  <span class="n">url</span><span class="o">=</span><span class="s">&#39;http://yourname.eicp.net:8123/userRpm/SysRebootRpm.htm?Reboot=%D6%D8%C6</span><span class="si">%F</span><span class="s">4%C2%B7%D3%C9%C6</span><span class="si">%F</span><span class="s">7&#39;</span>  
+  <span class="n">header_authorized</span><span class="o">=</span><span class="s">&#39;Basic dXNlcjpwYXNzd29yZA==&#39;</span>  
+  <span class="n">result</span> <span class="o">=</span> <span class="n">urlfetch</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span>  
+                          <span class="n">method</span><span class="o">=</span><span class="n">urlfetch</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span>  
+                          <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;Authorization&#39;</span><span class="p">:</span> <span class="n">header_authorized</span> <span class="p">})</span>  
+
+<span class="k">class</span> <span class="nc">MainPage</span><span class="p">(</span><span class="n">webapp2</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">):</span>  
+  <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  
+    <span class="n">reboot_router</span><span class="p">()</span>  
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">webapp2</span><span class="o">.</span><span class="n">WSGIApplication</span><span class="p">([</span>  
+  <span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="n">MainPage</span><span class="p">),</span>  
+<span class="p">],</span> <span class="n">debug</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>  
+</pre></div>
+
+
+<p>也就是直接用urlfetch發出一個一樣的http請求，目標域名是我在花生殼上註冊得來的。  </p>
+<p>下面设置定时任务，每天凌晨五點半之前我應該都能按計劃離開電腦去睡覺。別忘了還有設置timezone。<br />
+cron.yaml：  </p>
+<div class="highlight"><pre><span class="l-Scalar-Plain">cron</span><span class="p-Indicator">:</span>  
+<span class="p-Indicator">-</span> <span class="l-Scalar-Plain">description</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">auto reboot the router</span>  
+  <span class="l-Scalar-Plain">url</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/</span>  
+  <span class="l-Scalar-Plain">schedule</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">every day 05:30</span>  
+  <span class="l-Scalar-Plain">timezone</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Asia/Hong_Kong</span>  
+</pre></div>
+
+
+<p>最好更改一下訪問權限，如果不想其他人幫忙重啓路由。<br />
+handlers增加login: admin  </p>
+<p>app.yaml：  </p>
+<div class="highlight"><pre><span class="l-Scalar-Plain">application</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">khalidrouter</span>  
+<span class="l-Scalar-Plain">version</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">1</span>  
+<span class="l-Scalar-Plain">runtime</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">python27</span>  
+<span class="l-Scalar-Plain">api_version</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">1</span>  
+<span class="l-Scalar-Plain">threadsafe</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">yes</span>  
+
+<span class="l-Scalar-Plain">handlers</span><span class="p-Indicator">:</span>  
+<span class="p-Indicator">-</span> <span class="l-Scalar-Plain">url</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">.*</span>  
+  <span class="l-Scalar-Plain">script</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">autorouter.app</span>  
+  <span class="l-Scalar-Plain">login</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">admin</span>  
+<span class="l-Scalar-Plain">libraries</span><span class="p-Indicator">:</span>  
+<span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">webapp2</span>  
+  <span class="l-Scalar-Plain">version</span><span class="p-Indicator">:</span> <span class="s">&quot;2.5.2&quot;</span>  
+</pre></div>
+
+
+<p><a href="https://github.com/khalidhsu/autorouter">注：上述文件已經放到github中 。</a> </p>
+<p>最後還得注意一點，那就是路由器的撥號連接最好設置成自動連接，不要設置成“按需連接"。以保證gae發出重啓指令時候，路由是在線的。<br />
+好吧，爲了這破路由，傾注了一池廢話。要是它能刷openwrt，一切都不必如此。   </p>
+
+		<div id="article_meta">
+				Category:
+					<a href="../../../../../category/2014-02.html">2014-02</a>
+				<br />Tags:
+					<a href="../../../../../tag/router.html">router</a>
+					<a href="../../../../../tag/gae.html">gae</a>
+		</div>
+	</article>
+
+	<footer>
+		<a href="../../../../../" class="button_accent">&larr;&nbsp;&nbsp;&nbsp;Back to blog</a>
+	</footer>
+
+	<div id="comments">
+		<h2>Comments</h2>
+		<div id="disqus_thread"></div>
+		<script type="text/javascript">
+			var disqus_identifier = "posts/2014/Feb/07/auto-reboot-router/";
+			(function() {
+				var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+				dsq.src = 'http://khalidhsu.disqus.com/embed.js';
+				(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+			})();
+		</script>
+		<noscript>Please enable JavaScript to view <a href="http://disqus.com/?ref_noscript">comments</a>.</noscript>
+	</div>
+
+	</section>
+
+</body>
+</html>
